@@ -84,3 +84,45 @@ describe("HostCard context menu", () => {
     expect(onDelete).toHaveBeenCalledWith(host.id);
   });
 });
+
+describe("HostCard (FTP host)", () => {
+  beforeEach(() => {
+    useHostsStore.setState({ hosts: [] });
+    useHealthStore.setState({ byHostId: {} });
+  });
+
+  it("labels the protocol and offers no terminal", () => {
+    const host = makeHost({ id: "f1", port: 21, protocol: "ftp", ftp_security: "explicit" });
+    render(
+      <HostCard
+        host={host}
+        onConnect={vi.fn()}
+        onExplore={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onDuplicate={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/FTPS, root/)).toBeTruthy();
+    expect(screen.queryByTestId("host-card-f1-terminal")).toBeNull();
+    expect(screen.getByTestId("host-card-f1-explorer")).toBeTruthy();
+    openContextMenu("f1");
+    expect(screen.queryByText("Terminal")).toBeNull();
+    expect(screen.getAllByText("Explorer").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("calls plain FTP just FTP", () => {
+    const host = makeHost({ id: "f2", port: 21, protocol: "ftp", ftp_security: "none" });
+    render(
+      <HostCard
+        host={host}
+        onConnect={vi.fn()}
+        onExplore={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onDuplicate={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/^FTP, root/)).toBeTruthy();
+  });
+});

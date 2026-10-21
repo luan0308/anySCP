@@ -18,10 +18,13 @@ static TX: OnceLock<mpsc::UnboundedSender<(String, Value)>> = OnceLock::new();
 /// Safe to call from `.setup()` — the worker is spawned on a background thread
 /// with its own Tokio runtime, so it does not require an active reactor.
 ///
-/// No-op when `ANYSCP_DISABLE_TELEMETRY` is set (used by the e2e container
-/// so test runs don't pollute the real analytics stream).
+/// Off in this fork: these events would go to the upstream author's
+/// analytics project, not ours. Set `ANYSCP_ENABLE_TELEMETRY` to turn them
+/// back on. (`ANYSCP_DISABLE_TELEMETRY` still wins, as upstream.)
 pub fn init() {
-    if std::env::var_os("ANYSCP_DISABLE_TELEMETRY").is_some() {
+    if std::env::var_os("ANYSCP_DISABLE_TELEMETRY").is_some()
+        || std::env::var_os("ANYSCP_ENABLE_TELEMETRY").is_none()
+    {
         return;
     }
 

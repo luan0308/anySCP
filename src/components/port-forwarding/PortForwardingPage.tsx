@@ -22,6 +22,8 @@ export function PortForwardingPage() {
   const loadActiveTunnels = usePortForwardStore((s) => s.loadActiveTunnels);
 
   const hosts = useHostsStore((s) => s.hosts);
+  // Tunnels need SSH; FTP hosts can't forward ports.
+  const sshHosts = useMemo(() => hosts.filter((h) => h.protocol !== "ftp"), [hosts]);
   const loadHosts = useHostsStore((s) => s.loadHosts);
 
   const [showForm, setShowForm] = useState(false);
@@ -328,7 +330,7 @@ export function PortForwardingPage() {
       {/* New rule dialog */}
       {showForm && (
         <RuleDialog
-          hosts={hosts}
+          hosts={sshHosts}
           onSubmit={handleCreate}
           onCancel={() => setShowForm(false)}
         />
@@ -337,7 +339,7 @@ export function PortForwardingPage() {
       {/* Edit rule dialog */}
       {editingRule && (
         <RuleDialog
-          hosts={hosts}
+          hosts={sshHosts}
           rule={editingRule}
           onSubmit={async (updated) => {
             await usePortForwardStore.getState().updateRule({

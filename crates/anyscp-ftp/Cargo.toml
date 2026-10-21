@@ -1,0 +1,19 @@
+[package]
+name = "anyscp-ftp"
+version = "0.1.0"
+description = "FTP/FTPS client shared by the anySCP app and anyscp-mcp"
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["net", "io-util", "time", "fs", "rt", "macros"] }
+thiserror = "2"
+tracing = "0.1"
+suppaftp = { version = "12", features = ["tokio-rustls-ring", "deprecated"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "logging", "tls12"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+rustls-native-certs = "0.8"
+webpki-roots = "1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

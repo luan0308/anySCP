@@ -27,6 +27,8 @@ export interface TransferEvent {
   scp_session_id?: string;
   /** Present for S3 transfers */
   s3_session_id?: string;
+  /** Present for FTP transfers */
+  ftp_session_id?: string;
   name: string;
   direction: "Upload" | "Download";
   status: TransferStatusValue;

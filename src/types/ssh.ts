@@ -79,6 +79,28 @@ export interface SavedHost {
   font_size: number | null;
   last_connected_at: string | null;
   connection_count: number | null;
+  /** "ssh" (terminal + SFTP/SCP) or "ftp" (file explorer only). Defaults to "ssh". */
+  protocol?: HostProtocol;
+  /** FTP only: "none" (plain FTP), "explicit" (AUTH TLS) or "implicit" (port 990 style). */
+  ftp_security?: FtpSecurity | null;
+  /** FTP only: passive mode, default true. */
+  ftp_passive?: boolean | null;
+  /** FTP only: skip TLS certificate validation. */
+  ftp_allow_invalid_cert?: boolean | null;
+}
+
+export type HostProtocol = "ssh" | "ftp";
+export type FtpSecurity = "none" | "explicit" | "implicit";
+
+/** True for hosts reached over FTP/FTPS (no terminal, explorer only). */
+export function isFtpHost(host: Pick<SavedHost, "protocol"> | null | undefined): boolean {
+  return host?.protocol === "ftp";
+}
+
+/** Short protocol label for cards and tabs: "SSH", "FTP" or "FTPS". */
+export function protocolLabel(host: Pick<SavedHost, "protocol" | "ftp_security">): string {
+  if (!isFtpHost(host)) return "SSH";
+  return host.ftp_security && host.ftp_security !== "none" ? "FTPS" : "FTP";
 }
 
 export interface RecentConnection {

@@ -1,0 +1,34 @@
+[package]
+name = "anyscp-mcp"
+version = "0.1.0"
+description = "MCP server that lets Claude work with the servers saved in anySCP (SFTP, FTP, FTPS)"
+license = "MIT"
+edition = "2021"
+
+[[bin]]
+name = "anyscp-mcp"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+async-trait = "0.1"
+anyhow = "1"
+humantime = "2"
+dirs = "6"
+
+# Same versions the anySCP app pins, so the two stay compatible.
+russh = "=0.46.0"
+russh-keys = "=0.46.0"
+russh-sftp = "=2.1.1"
+rusqlite = { version = "0.31", features = ["bundled"] }
+keyring = { version = "3", features = ["apple-native", "linux-native", "windows-native"] }
+
+# FTP / FTPS client shared with the anySCP app
+anyscp-ftp = { path = "../crates/anyscp-ftp" }
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true

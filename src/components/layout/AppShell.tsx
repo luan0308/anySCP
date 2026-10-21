@@ -124,8 +124,10 @@ export function AppShell() {
             void (async () => {
               const { invoke } = await import("@tauri-apps/api/core");
               if (tab.type === "sftp") {
+                const { closeExplorerSession } =
+                  await import("../../lib/explorer-transport");
                 try {
-                  await invoke("sftp_close", { sftpSessionId: activeTabId });
+                  await closeExplorerSession(tab.transport ?? "sftp", activeTabId);
                 } catch {
                   /* ok */
                 }

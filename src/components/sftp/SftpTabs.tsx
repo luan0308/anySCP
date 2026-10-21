@@ -14,8 +14,11 @@ export function SftpTabs() {
   const handleClose = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("sftp_close", { sftpSessionId: id });
+      const { closeExplorerSession } = await import("../../lib/explorer-transport");
+      const { useTabStore } = await import("../../stores/tab-store");
+      const tab = useTabStore.getState().tabs.get(id);
+      const transport = tab && tab.type === "sftp" ? (tab.transport ?? "sftp") : "sftp";
+      await closeExplorerSession(transport, id);
     } catch {
       // Already closed
     }

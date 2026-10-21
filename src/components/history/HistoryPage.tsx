@@ -108,7 +108,22 @@ export function HistoryPage() {
   // Total count for display
   const totalCount = entries.length + (hasMore ? "+" : "");
 
+  // FTP hosts have no terminal: both actions open the explorer for them.
+  const openIfFtp = useCallback(async (entry: ConnectionHistoryEntry): Promise<boolean> => {
+    const { useHostsStore } = await import("../../stores/hosts-store");
+    const host = useHostsStore.getState().hosts.find((h) => h.id === entry.host_id);
+    if (!host || host.protocol !== "ftp") return false;
+    const { openFtpExplorer } = await import("../../lib/ftp-explorer");
+    try {
+      await openFtpExplorer(host).done;
+    } catch {
+      // Errors surface via the explorer
+    }
+    return true;
+  }, []);
+
   const handleTerminal = useCallback(async (entry: ConnectionHistoryEntry) => {
+    if (await openIfFtp(entry)) return;
     try {
       const { invoke } = await import("@tauri-apps/api/core");
       const sessionId = await invoke<string>("connect_saved_host", { hostId: entry.host_id });
@@ -124,7 +139,7 @@ export function HistoryPage() {
     } catch {
       // Connection errors show via disconnect overlay
     }
-  }, []);
+  }, [openIfFtp]);
 
   const handleContextMenu = (e: React.MouseEvent, entry: ConnectionHistoryEntry) => {
     e.preventDefault();
@@ -132,6 +147,7 @@ export function HistoryPage() {
   };
 
   const handleExplorer = useCallback(async (entry: ConnectionHistoryEntry) => {
+    if (await openIfFtp(entry)) return;
     try {
       const { invoke } = await import("@tauri-apps/api/core");
       const sessionId = await invoke<string>("connect_saved_host_no_pty", { hostId: entry.host_id });
@@ -157,7 +173,7 @@ export function HistoryPage() {
     } catch {
       // Errors surface via SFTP page
     }
-  }, []);
+  }, [openIfFtp]);
 
   const handleDeleteHistoryEntry = useCallback(async (entryId: number) => {
     setMutating(true);
@@ -213,7 +229,7 @@ export function HistoryPage() {
             <div>
               <h1 className="text-[length:var(--text-lg)] font-semibold text-text-primary">History</h1>
               <p className="text-[length:var(--text-xs)] text-text-muted mt-1">
-                Audit log of all SSH connections — when you connected, to which host, and as which user
+                Audit log of all SSH and FTP connections — when you connected, to which host, and as which user
               </p>
             </div>
             {entries.length > 0 && (

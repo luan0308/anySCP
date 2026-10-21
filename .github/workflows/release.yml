@@ -1,92 +1,31 @@
-name: Release
+name: Release (Windows)
+
+# Fork build: produces the Windows installers (.msi and .exe) with the
+# anyscp-mcp server bundled next to the app, and attaches them to a GitHub
+# release. Run it by pushing a tag like v0.1.0, or by hand from the Actions
+# tab ("Run workflow").
 
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build (e.g. 0.1.0)"
+        required: true
+        default: "0.1.0"
 
 permissions:
   contents: write
 
 jobs:
-  # Create the draft release ONCE so the parallel build matrix all upload to
-  # the same release. GitHub does not de-duplicate *draft* releases by tag, so
-  # previously each matrix job raced to create its own draft → multiple v*
-  # drafts with split assets. Reuse an existing draft if present (e.g. on a
-  # workflow re-run) to stay idempotent.
-  create-release:
-    runs-on: ubuntu-latest
-    outputs:
-      release_id: ${{ steps.create-release.outputs.result }}
-    steps:
-      - name: Create or reuse the draft release
-        id: create-release
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const tag = process.env.GITHUB_REF_NAME;
-            const releases = await github.paginate(github.rest.repos.listReleases, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              per_page: 100,
-            });
-            const existing = releases.find((r) => r.tag_name === tag && r.draft);
-            if (existing) {
-              core.info(`Reusing existing draft release ${existing.id} for ${tag}`);
-              return existing.id;
-            }
-            const { data } = await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: tag,
-              name: `anySCP ${tag}`,
-              body: "",
-              draft: true,
-              prerelease: false,
-            });
-            core.info(`Created draft release ${data.id} for ${tag}`);
-            return data.id;
-
-  build:
-    needs: create-release
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: macos-14
-            args: --target aarch64-apple-darwin
-            rust_target: aarch64-apple-darwin
-            label: macOS (Apple Silicon)
-          - platform: macos-14
-            args: --target x86_64-apple-darwin
-            rust_target: x86_64-apple-darwin
-            label: macOS (Intel)
-          - platform: ubuntu-22.04
-            args: ""
-            rust_target: ""
-            label: Linux
-          - platform: windows-latest
-            args: ""
-            rust_target: ""
-            label: Windows
-
-    runs-on: ${{ matrix.platform }}
-    name: Build — ${{ matrix.label }}
+  windows:
+    runs-on: windows-latest
+    name: Build Windows installer
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Linux dependencies
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            libsoup-3.0-dev \
-            javascriptcoregtk-4.1-dev
 
       - uses: pnpm/action-setup@v4
         with:
@@ -98,97 +37,50 @@ jobs:
           cache: pnpm
 
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.rust_target }}
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri -> target
+          workspaces: |
+            src-tauri -> target
+            anyscp-mcp -> target
 
-      - name: Set version from tag
+      - name: Resolve version
+        id: version
         shell: bash
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          echo "Setting version to $VERSION"
-          # Update package.json
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           jq --arg v "$VERSION" '.version = $v' package.json > tmp.json && mv tmp.json package.json
-          # Update tauri.conf.json
           jq --arg v "$VERSION" '.version = $v' src-tauri/tauri.conf.json > tmp.json && mv tmp.json src-tauri/tauri.conf.json
-          # Update Cargo.toml
           sed -i.bak "s/^version = \".*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml && rm -f src-tauri/Cargo.toml.bak
 
+      # The MCP server ships inside the installer as a Tauri sidecar, which
+      # must be named with the target triple before bundling.
+      - name: Build anyscp-mcp
+        shell: bash
+        run: |
+          cargo build --release --manifest-path anyscp-mcp/Cargo.toml
+          TRIPLE=$(rustc -vV | sed -n 's/host: //p')
+          mkdir -p src-tauri/binaries
+          cp anyscp-mcp/target/release/anyscp-mcp.exe "src-tauri/binaries/anyscp-mcp-$TRIPLE.exe"
+
       - name: Install frontend dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
         with:
-          # Upload to the single release created up front (no per-job drafts).
-          releaseId: ${{ needs.create-release.outputs.release_id }}
-          args: ${{ matrix.args }}
-          updaterJsonKeepUniversal: true
+          args: --config src-tauri/tauri.release.conf.json
+          tagName: v${{ steps.version.outputs.version }}
+          releaseName: anySCP + FTP v${{ steps.version.outputs.version }}
+          releaseBody: |
+            Windows build with FTP/FTPS support and the anyscp-mcp server for Claude.
 
-  update-release-notes:
-    needs: build
-    runs-on: ubuntu-latest
-    name: Generate release notes
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Generate changelog
-        run: |
-          PREV_TAG=$(git tag --sort=-version:refname | head -2 | tail -1)
-          CURRENT_TAG=${{ github.ref_name }}
-
-          if [ "$PREV_TAG" = "$CURRENT_TAG" ] || [ -z "$PREV_TAG" ]; then
-            COMMITS=$(git log --pretty=format:"- %s" HEAD)
-          else
-            COMMITS=$(git log --pretty=format:"- %s" "${PREV_TAG}..${CURRENT_TAG}")
-          fi
-
-          cat <<BODY > release_notes.md
-          ## What's New
-
-          ${COMMITS}
-
-          ## Downloads
-
-          | Platform | File |
-          |----------|------|
-          | macOS (Apple Silicon) | \`.dmg\` (aarch64) |
-          | macOS (Intel) | \`.dmg\` (x64) |
-          | Windows | \`.msi\` / \`.exe\` |
-          | Linux | \`.deb\` / \`.AppImage\` |
-
-          ## Installation
-
-          Download the appropriate file for your platform from the assets below.
-
-          macOS users: If you see "app is damaged", run:
-          \`\`\`bash
-          xattr -cr /Applications/anyscp.app
-          \`\`\`
-
-          ## Auto-Updates
-
-          Already have anySCP installed? Go to **Settings > Updates** and click **Check** to update in-app.
-          BODY
-
-      - name: Update release body
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release edit ${{ github.ref_name }} \
-            --notes-file release_notes.md
+            Install with the .msi or the -setup.exe below, then open Settings > Claude and click Connect.
+          releaseDraft: false
+          prerelease: false

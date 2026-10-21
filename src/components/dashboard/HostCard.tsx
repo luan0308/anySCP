@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Activity, Pencil, TerminalSquare, Copy, Trash2, FolderOpen, Waypoints } from "lucide-react";
 import type { SavedHost } from "../../types";
+import { isFtpHost, protocolLabel } from "../../types";
 import { CardActionButton, CardActionStrip } from "./CardActionButton";
 import { relativeTime } from "../../utils/time";
 import { ContextMenu } from "../shared/ContextMenu";
@@ -89,7 +90,9 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
   const jumpLabel = jumpHost ? jumpHost.label || jumpHost.host : null;
 
   // Build subtitle segments
-  const subtitleParts: string[] = [`SSH, ${host.username}`];
+  const ftp = isFtpHost(host);
+  const proto = protocolLabel(host);
+  const subtitleParts: string[] = [`${proto}, ${host.username}`];
   if (host.os_type) {
     const osLabels: Record<string, string> = {
       linux: "Linux",
@@ -118,11 +121,15 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
       icon: Activity,
       onClick: () => void checkHealth(host.id),
     },
-    {
-      label: "Terminal",
-      icon: TerminalSquare,
-      onClick: () => onConnect(host),
-    },
+    ...(ftp
+      ? []
+      : [
+          {
+            label: "Terminal",
+            icon: TerminalSquare,
+            onClick: () => onConnect(host),
+          },
+        ]),
     {
       label: "Explorer",
       icon: FolderOpen,
@@ -157,10 +164,10 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
     if (health.status === "idle") return null;
     if (health.status === "checking") return "Pinging...";
     const latency = health.latencyMs !== null ? ` · ${health.latencyMs}ms` : "";
-    if (health.status === "reachable") return `SSH reachable${latency}`;
+    if (health.status === "reachable") return `${proto} reachable${latency}`;
     if (health.status === "dnsFailed") return "DNS failed";
     if (health.status === "portClosed") return "Port unreachable";
-    if (health.status === "sshFailed") return "SSH failed";
+    if (health.status === "sshFailed") return `${proto} failed`;
     return "Ping failed";
   })();
 
@@ -175,7 +182,7 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
         onClick={() => onConnect(host)}
         onKeyDown={handleKeyDown}
         onContextMenu={handleContextMenu}
-        title={`Connect to ${displayName}`}
+        title={ftp ? `Open ${displayName} in the explorer` : `Connect to ${displayName}`}
         className={[
           // grab/grabbing communicates the card is draggable; the click-to-connect
           // action still fires for a plain click (drag needs a 5px move first).
@@ -209,13 +216,15 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
             busy={health.status === "checking"}
             colorClass={statusColor(health.status)}
           />
-          <CardActionButton
-            icon={TerminalSquare}
-            label="Terminal"
-            onClick={() => onConnect(host)}
-            ariaLabel={`Open terminal for ${displayName}`}
-            testId={`host-card-${host.id}-terminal`}
-          />
+          {!ftp && (
+            <CardActionButton
+              icon={TerminalSquare}
+              label="Terminal"
+              onClick={() => onConnect(host)}
+              ariaLabel={`Open terminal for ${displayName}`}
+              testId={`host-card-${host.id}-terminal`}
+            />
+          )}
           <CardActionButton
             icon={FolderOpen}
             label="Explorer"

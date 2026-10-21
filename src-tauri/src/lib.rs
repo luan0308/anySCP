@@ -2,7 +2,9 @@ mod ai;
 mod backup;
 mod db;
 mod editors;
+mod ftp;
 mod import;
+mod mcp;
 mod portforward;
 mod s3;
 mod scp;
@@ -15,6 +17,8 @@ mod types;
 mod vault;
 
 use db::HostDb;
+use ftp::transfer_manager::FtpTransferManager;
+use ftp::FtpManager;
 use portforward::manager::PortForwardManager;
 use s3::transfer_manager::S3TransferManager;
 use s3::S3Manager;
@@ -184,6 +188,15 @@ pub fn run() {
             app.manage(scp_manager);
             app.manage(scp_transfer_manager);
 
+            // FTP/FTPS: own connections (no SSH underneath), same queue model.
+            let ftp_manager = Arc::new(FtpManager::new());
+            let ftp_transfer_manager = Arc::new(FtpTransferManager::new(
+                ftp_manager.clone(),
+                app.handle().clone(),
+            ));
+            app.manage(ftp_manager);
+            app.manage(ftp_transfer_manager);
+
             let pf_manager = Arc::new(PortForwardManager::new(app.handle().clone()));
             app.manage(pf_manager);
 
@@ -255,6 +268,32 @@ pub fn run() {
             scp::commands::scp_list_transfers,
             scp::commands::scp_clear_finished_transfers,
             scp::commands::scp_set_concurrency,
+            // Claude (MCP)
+            mcp::mcp_status,
+            mcp::mcp_connect_claude_desktop,
+            // FTP / FTPS
+            ftp::commands::ftp_open,
+            ftp::commands::ftp_close,
+            ftp::commands::ftp_list_dir,
+            ftp::commands::ftp_home_dir,
+            ftp::commands::ftp_mkdir,
+            ftp::commands::ftp_create_file,
+            ftp::commands::ftp_delete,
+            ftp::commands::ftp_rename,
+            ftp::commands::ftp_chmod,
+            ftp::commands::ftp_chmod_recursive,
+            ftp::commands::ftp_move_entries,
+            ftp::commands::ftp_copy_entries,
+            ftp::commands::ftp_download,
+            ftp::commands::ftp_upload,
+            ftp::commands::ftp_cancel_transfer,
+            ftp::commands::ftp_edit_external,
+            ftp::commands::ftp_enqueue_upload,
+            ftp::commands::ftp_enqueue_download,
+            ftp::commands::ftp_retry_transfer,
+            ftp::commands::ftp_list_transfers,
+            ftp::commands::ftp_clear_finished_transfers,
+            ftp::commands::ftp_set_concurrency,
             // SSH
             ssh::commands::ssh_connect,
             ssh::commands::ssh_cancel_connect,

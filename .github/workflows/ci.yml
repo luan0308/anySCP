@@ -95,6 +95,12 @@ jobs:
         working-directory: src-tauri
         run: cargo test
 
+      - name: Test shared FTP client and MCP server
+        run: |
+          cargo test --manifest-path crates/anyscp-ftp/Cargo.toml
+          cargo clippy --manifest-path anyscp-mcp/Cargo.toml --all-targets -- -D warnings
+          cargo test --manifest-path anyscp-mcp/Cargo.toml
+
   # Build the runner image ONCE per CI run and warm a cross-run GitHub Actions
   # layer cache. Without this, every e2e shard would rebuild the image from
   # scratch — including the multi-minute `cargo install tauri-driver` compile —

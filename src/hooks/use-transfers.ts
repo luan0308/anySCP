@@ -48,10 +48,11 @@ export function useTransfers(): TransfersModel {
 
   // Read the map at call time — depending on `transfers` would mint new
   // callback identities on every progress tick and defeat TransferRow's memo.
-  const protocolOf = useCallback((id: string): "s3" | "scp" | "sftp" => {
+  const protocolOf = useCallback((id: string): "s3" | "scp" | "ftp" | "sftp" => {
     const t = useTransferStore.getState().transfers.get(id);
     if (t?.s3_session_id) return "s3";
     if (t?.scp_session_id) return "scp";
+    if (t?.ftp_session_id) return "ftp";
     return "sftp";
   }, []);
 
@@ -84,6 +85,7 @@ export function useTransfers(): TransfersModel {
         const { invoke } = await import("@tauri-apps/api/core");
         await invoke("sftp_clear_finished_transfers");
         await invoke("scp_clear_finished_transfers");
+        await invoke("ftp_clear_finished_transfers");
         await invoke("s3_clear_finished_transfers");
       } catch { /* best-effort */ }
     })();

@@ -220,11 +220,17 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
         const unsub = await listen<{
           sftp_session_id?: string;
           scp_session_id?: string;
+          ftp_session_id?: string;
           direction: string;
           status: string;
         }>(transferEventName(transport), (event) => {
           const { direction, status } = event.payload;
-          const sid = transport === "scp" ? event.payload.scp_session_id : event.payload.sftp_session_id;
+          const sid =
+            transport === "scp"
+              ? event.payload.scp_session_id
+              : transport === "ftp"
+                ? event.payload.ftp_session_id
+                : event.payload.sftp_session_id;
           if (sid === sessionId && direction === "Upload" && status === "Completed") {
             setTimeout(() => {
               const path = currentPathRef.current;

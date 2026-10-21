@@ -23,7 +23,12 @@ export function ExplorerPage({ sftpSessionId, transport = "sftp", s3SessionId, i
   const baseLabel = sftpSession?.label ?? s3Session?.label ?? "Explorer";
   // Surface SCP fallback subtly so the user understands why server-side
   // metadata (timestamps, etc.) may look slightly different.
-  const label = sftpSessionId && transport === "scp" ? `${baseLabel} · SCP` : baseLabel;
+  const label =
+    sftpSessionId && transport === "scp"
+      ? `${baseLabel} · SCP`
+      : sftpSessionId && transport === "ftp"
+        ? `${baseLabel} · FTP`
+        : baseLabel;
   const isSftp = !!sftpSessionId;
   const Icon = isSftp ? FolderOpen : Cloud;
 

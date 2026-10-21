@@ -84,6 +84,10 @@ pub async fn import_save_ssh_hosts(
                 font_size: None,
                 last_connected_at: None,
                 connection_count: None,
+                protocol: "ssh".to_string(),
+                ftp_security: None,
+                ftp_passive: None,
+                ftp_allow_invalid_cert: None,
                 created_at: now.clone(),
                 updated_at: now,
             };
@@ -236,6 +240,10 @@ mod tests {
             font_size: None,
             last_connected_at: None,
             connection_count: None,
+            protocol: "ssh".to_string(),
+            ftp_security: None,
+            ftp_passive: None,
+            ftp_allow_invalid_cert: None,
             created_at: "t".to_string(),
             updated_at: "t".to_string(),
         }

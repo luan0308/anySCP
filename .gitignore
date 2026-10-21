@@ -33,3 +33,7 @@ CLAUDE.md
 *.njsproj
 *.sln
 *.sw?
+
+# Sidecar binaries staged by the release workflow
+src-tauri/binaries/
+anyscp-mcp/target/

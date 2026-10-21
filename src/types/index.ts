@@ -17,7 +17,11 @@ export type {
   HostHealthCheckResult,
   StoredCredential,
   DuplicateOutcome,
+  HostProtocol,
+  FtpSecurity,
 } from "./ssh";
+
+export { isFtpHost, protocolLabel } from "./ssh";
 
 export type {
   SplitDirection,

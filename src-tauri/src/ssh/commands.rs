@@ -132,6 +132,28 @@ pub async fn ssh_health_check_saved_host(
 ) -> Result<HostHealthCheckResult, SshError> {
     let db_clone = Arc::clone(&db);
     let id_for_db = host_id.clone();
+    let saved = tokio::task::spawn_blocking(move || db_clone.get_host(&id_for_db))
+        .await
+        .map_err(|e| SshError::IoError(format!("task panicked: {e}")))?
+        .map_err(|e| SshError::IoError(e.to_string()))?;
+
+    // FTP hosts: DNS + TCP reachability only (no SSH handshake to try).
+    if let Some(h) = saved.as_ref().filter(|h| h.is_ftp()) {
+        let started = Instant::now();
+        return Ok(
+            match resolve_and_connect_tcp(&h.host, h.port, started).await {
+                Ok(_stream) => HostHealthCheckResult {
+                    status: HostHealthStatus::Reachable,
+                    message: "Ping".to_string(),
+                    latency_ms: Some(started.elapsed().as_millis() as u64),
+                },
+                Err(result) => result,
+            },
+        );
+    }
+
+    let db_clone = Arc::clone(&db);
+    let id_for_db = host_id.clone();
     let config = tokio::task::spawn_blocking(move || {
         build_host_config_blocking(&id_for_db, &db_clone, &mut Vec::new())
     })
@@ -624,6 +646,13 @@ fn build_host_config_blocking(
         .get_host(host_id)
         .map_err(|e| SshError::IoError(e.to_string()))?
         .ok_or_else(|| SshError::SessionNotFound(format!("host not found: {host_id}")))?;
+
+    if saved_host.is_ftp() {
+        return Err(SshError::ConnectionFailed(format!(
+            "{} is an FTP server: it has no terminal or SSH tunnel, open it in the file explorer instead",
+            saved_host.label
+        )));
+    }
 
     let auth_method = resolve_auth_method(host_id, &saved_host.auth_type, saved_host.key_path);
 

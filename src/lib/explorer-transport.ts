@@ -1,15 +1,16 @@
 // Explorer transport dispatch.
 //
-// SFTP and SCP expose an identical command surface — same operation names,
-// same argument shapes, same return types — differing only in the command
-// prefix (`sftp_` vs `scp_`) and the session-id argument key (`sftpSessionId`
-// vs `scpSessionId`). This module centralises that difference so the Explorer
-// UI can stay transport-agnostic.
+// SFTP, SCP and FTP expose an identical command surface — same operation
+// names, same argument shapes, same return types — differing only in the
+// command prefix (`sftp_` / `scp_` / `ftp_`) and the session-id argument key
+// (`sftpSessionId` / `scpSessionId` / `ftpSessionId`). This module centralises
+// that difference so the Explorer UI can stay transport-agnostic.
 //
 // SCP is used transparently as a fallback when a host has the SFTP subsystem
-// disabled; the user never picks it explicitly (see exploreHost).
+// disabled; the user never picks it explicitly (see exploreHost). FTP is used
+// for hosts saved with the FTP protocol.
 
-export type Transport = "sftp" | "scp";
+export type Transport = "sftp" | "scp" | "ftp";
 
 /** The Tauri event channel that carries transfer progress for a transport. */
 export function transferEventName(transport: Transport): string {
@@ -17,8 +18,15 @@ export function transferEventName(transport: Transport): string {
 }
 
 /** The session-id argument key a transport's commands expect. */
-function sessionKey(transport: Transport): "sftpSessionId" | "scpSessionId" {
-  return transport === "scp" ? "scpSessionId" : "sftpSessionId";
+function sessionKey(transport: Transport): "sftpSessionId" | "scpSessionId" | "ftpSessionId" {
+  if (transport === "scp") return "scpSessionId";
+  if (transport === "ftp") return "ftpSessionId";
+  return "sftpSessionId";
+}
+
+/** Close a transport session with the command that matches it. */
+export async function closeExplorerSession(transport: Transport, sessionId: string): Promise<void> {
+  await explorerInvoke(transport, "close", sessionId);
 }
 
 /**

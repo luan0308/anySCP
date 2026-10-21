@@ -5,7 +5,7 @@ import { useSettingsStore } from "../../stores/settings-store";
 import { CustomSelect, type SelectOption } from "../shared/CustomSelect";
 import { useUpdaterStore } from "../../stores/updater-store";
 import { toast } from "../../stores/toast-store";
-import { RefreshCw, CheckCircle2, AlertCircle, Palette, SquareTerminal, ArrowUpDown, Info, ExternalLink, Check, FileCode, Plus, Trash2, FolderOpen, Star, Search, Database, Download, Upload, ShieldCheck } from "lucide-react";
+import { RefreshCw, CheckCircle2, AlertCircle, Palette, SquareTerminal, ArrowUpDown, Info, ExternalLink, Check, FileCode, Plus, Trash2, FolderOpen, Star, Search, Database, Download, Upload, ShieldCheck, Sparkles, Copy } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { CursorStyle, ThemeMode, EditorConfig, PasteButton, DoubleClickAction } from "../../stores/settings-store";
 
@@ -47,7 +47,7 @@ const REPO_URL = "https://github.com/macnev2013/anySCP";
 // Each settings category is a section here. To add a new category, add an entry
 // to SECTIONS, a description, and render its content in <SectionContent />.
 
-type SectionId = "appearance" | "terminal" | "explorer" | "transfers" | "editors" | "data" | "about";
+type SectionId = "appearance" | "terminal" | "explorer" | "transfers" | "editors" | "claude" | "data" | "about";
 
 const SECTIONS: { id: SectionId; label: string; icon: LucideIcon }[] = [
   { id: "appearance", label: "Appearance", icon: Palette },
@@ -55,6 +55,7 @@ const SECTIONS: { id: SectionId; label: string; icon: LucideIcon }[] = [
   { id: "explorer", label: "Explorer", icon: FolderOpen },
   { id: "transfers", label: "Transfers", icon: ArrowUpDown },
   { id: "editors", label: "Editors", icon: FileCode },
+  { id: "claude", label: "Claude", icon: Sparkles },
   { id: "data", label: "Data", icon: Database },
   { id: "about", label: "About & Updates", icon: Info },
 ];
@@ -65,6 +66,7 @@ const SECTION_DESCRIPTIONS: Record<SectionId, string> = {
   explorer: "How the file browser behaves.",
   transfers: "Control how files are transferred.",
   editors: "Editors used by “Edit” / “Open With” in the file browser.",
+  claude: "Let Claude work with your saved servers.",
   data: "Back up, restore, and reset your data.",
   about: "App information, links, and updates.",
 };
@@ -156,6 +158,8 @@ function SectionContent({ section }: { section: SectionId }) {
       return <TransferSettings />;
     case "editors":
       return <EditorsSettings />;
+    case "claude":
+      return <ClaudeSettings />;
     case "data":
       return <DataSettings />;
     case "about":
@@ -717,6 +721,102 @@ function TransferSettings() {
         <NumberSetting id="s-concurrency" value={transferConcurrency} min={1} max={10} step={1} onChange={setConcurrency} />
       </SettingRow>
     </SettingsGroup>
+  );
+}
+
+// ─── Claude (MCP) ───────────────────────────────────────────────────────────────
+
+interface McpStatus {
+  server_path: string | null;
+  config_paths: string[];
+  connected: boolean;
+  claude_code_command: string | null;
+}
+
+function ClaudeSettings() {
+  const [status, setStatus] = useState<McpStatus | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const refresh = useCallback(async () => {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      setStatus(await invoke<McpStatus>("mcp_status"));
+    } catch {
+      setStatus(null);
+    }
+  }, []);
+
+  useEffect(() => { void refresh(); }, [refresh]);
+
+  const connect = async () => {
+    setBusy(true);
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      setStatus(await invoke<McpStatus>("mcp_connect_claude_desktop"));
+      toast.success("Connected. Restart Claude Desktop to load anySCP.");
+    } catch (err) {
+      toast.error(typeof err === "string" ? err : "Could not update the Claude Desktop config");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const copyCommand = async () => {
+    if (!status?.claude_code_command) return;
+    try {
+      await navigator.clipboard.writeText(status.claude_code_command);
+      toast.success("Command copied");
+    } catch {
+      toast.error("Could not copy");
+    }
+  };
+
+  return (
+    <>
+      <SettingsGroup>
+        <SettingRow>
+          <div>
+            <p className={LABEL_CLASS}>Claude Desktop</p>
+            <p className={DESC_CLASS}>
+              {status?.connected
+                ? "Connected. Claude can list, read, edit, upload and download files on your saved servers. Passwords stay in the system keychain."
+                : "Lets Claude reach your saved SSH and FTP servers. Passwords never leave the system keychain."}
+            </p>
+          </div>
+          {status?.connected ? (
+            <span className="flex items-center gap-1.5 text-[length:var(--text-sm)] text-status-connected shrink-0">
+              <CheckCircle2 size={14} /> Connected
+            </span>
+          ) : (
+            <button
+              type="button"
+              className={BTN_SECONDARY}
+              disabled={busy || !status?.server_path}
+              onClick={() => void connect()}
+            >
+              <Sparkles size={14} /> {busy ? "Connecting…" : "Connect"}
+            </button>
+          )}
+        </SettingRow>
+        {status && !status.server_path && (
+          <p className={`${DESC_CLASS} px-1`}>
+            The MCP server is installed with the packaged app; it is not available in development builds.
+          </p>
+        )}
+      </SettingsGroup>
+      {status?.claude_code_command && (
+        <SettingsGroup label="Claude Code">
+          <SettingRow>
+            <code className="text-[length:var(--text-xs)] font-mono text-text-secondary break-all">
+              {status.claude_code_command}
+            </code>
+            <button type="button" className={BTN_SECONDARY} onClick={() => void copyCommand()}>
+              <Copy size={14} /> Copy
+            </button>
+          </SettingRow>
+        </SettingsGroup>
+      )}
+    </>
   );
 }
 

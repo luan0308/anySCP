@@ -182,6 +182,33 @@ pub struct SavedHost {
     pub last_connected_at: Option<String>,
     /// Running total of successful connections to this host.
     pub connection_count: Option<u32>,
+
+    // Protocol (FTP support)
+    /// "ssh" (terminal + SFTP/SCP) or "ftp" (file explorer only). Missing in
+    /// payloads from older frontends and backups, hence the serde default.
+    #[serde(default = "default_protocol")]
+    pub protocol: String,
+    /// FTP only: "none" (plain FTP), "explicit" (AUTH TLS) or "implicit" (TLS
+    /// from the first byte, usually port 990).
+    #[serde(default)]
+    pub ftp_security: Option<String>,
+    /// FTP only: passive mode (default true).
+    #[serde(default)]
+    pub ftp_passive: Option<bool>,
+    /// FTP only: skip TLS certificate validation (shared hosts often present a
+    /// certificate issued for the provider instead of the address used).
+    #[serde(default)]
+    pub ftp_allow_invalid_cert: Option<bool>,
+}
+
+fn default_protocol() -> String {
+    "ssh".to_string()
+}
+
+impl SavedHost {
+    pub fn is_ftp(&self) -> bool {
+        self.protocol == "ftp"
+    }
 }
 
 /// A named group that hosts can be assigned to.
@@ -591,6 +618,34 @@ impl HostDb {
             tracing::info!("migration 14→15 applied: added s3_connections.sort_order");
         }
 
+        if version < 16 {
+            // FTP/FTPS hosts live in saved_hosts next to SSH ones, so groups,
+            // ordering, history and backups cover them for free. Idempotent:
+            // each column is only added when missing.
+            let columns = [
+                ("protocol", "TEXT NOT NULL DEFAULT 'ssh'"),
+                ("ftp_security", "TEXT"),
+                ("ftp_passive", "INTEGER"),
+                ("ftp_allow_invalid_cert", "INTEGER"),
+            ];
+            for (name, decl) in columns {
+                let exists = conn
+                    .prepare(&format!("SELECT {name} FROM saved_hosts LIMIT 0"))
+                    .is_ok();
+                if !exists {
+                    conn.execute(
+                        &format!("ALTER TABLE saved_hosts ADD COLUMN {name} {decl}"),
+                        [],
+                    )?;
+                }
+            }
+            conn.execute(
+                "INSERT OR REPLACE INTO _meta (key, value) VALUES ('schema_version', '16')",
+                [],
+            )?;
+            tracing::info!("migration 15→16 applied: added FTP columns to saved_hosts");
+        }
+
         Ok(())
     }
 
@@ -700,14 +755,14 @@ impl HostDb {
                  key_path, color, notes, environment, os_type,
                  startup_command, proxy_jump, keep_alive_interval, default_shell,
                  font_size, last_connected_at, connection_count, proxy_jump_host_id,
-                 start_directory
+                 start_directory, protocol, ftp_security, ftp_passive, ftp_allow_invalid_cert
              )
              VALUES (
                  ?1,  ?2,  ?3,  ?4,  ?5,  ?6,  ?7,  ?8,  ?9,
                  ?10, ?11, ?12, ?13, ?14,
                  ?15, ?16, ?17, ?18,
                  ?19, ?20, ?21, ?22,
-                 ?23
+                 ?23, ?24, ?25, ?26, ?27
              )
              ON CONFLICT(id) DO UPDATE SET
                  label                = excluded.label,
@@ -730,7 +785,11 @@ impl HostDb {
                  last_connected_at    = excluded.last_connected_at,
                  connection_count     = excluded.connection_count,
                  proxy_jump_host_id   = excluded.proxy_jump_host_id,
-                 start_directory      = excluded.start_directory",
+                 start_directory      = excluded.start_directory,
+                 protocol             = excluded.protocol,
+                 ftp_security         = excluded.ftp_security,
+                 ftp_passive          = excluded.ftp_passive,
+                 ftp_allow_invalid_cert = excluded.ftp_allow_invalid_cert",
             params![
                 host.id,
                 host.label,
@@ -755,6 +814,10 @@ impl HostDb {
                 host.connection_count,
                 host.proxy_jump_host_id,
                 host.start_directory,
+                host.protocol,
+                host.ftp_security,
+                host.ftp_passive,
+                host.ftp_allow_invalid_cert,
             ],
         )?;
         Ok(())
@@ -774,7 +837,7 @@ impl HostDb {
                     key_path, color, notes, environment, os_type,
                     startup_command, proxy_jump, keep_alive_interval, default_shell,
                     font_size, last_connected_at, connection_count, proxy_jump_host_id,
-                    start_directory
+                    start_directory, protocol, ftp_security, ftp_passive, ftp_allow_invalid_cert
              FROM saved_hosts
              ORDER BY sort_order ASC, label ASC",
         )?;
@@ -804,6 +867,10 @@ impl HostDb {
                 connection_count: row.get(20)?,
                 proxy_jump_host_id: row.get(21)?,
                 start_directory: row.get(22)?,
+                protocol: row.get(23)?,
+                ftp_security: row.get(24)?,
+                ftp_passive: row.get(25)?,
+                ftp_allow_invalid_cert: row.get(26)?,
             })
         })?;
 
@@ -865,7 +932,7 @@ impl HostDb {
                     key_path, color, notes, environment, os_type,
                     startup_command, proxy_jump, keep_alive_interval, default_shell,
                     font_size, last_connected_at, connection_count, proxy_jump_host_id,
-                    start_directory
+                    start_directory, protocol, ftp_security, ftp_passive, ftp_allow_invalid_cert
              FROM saved_hosts
              WHERE id = ?1",
         )?;
@@ -895,6 +962,10 @@ impl HostDb {
                 connection_count: row.get(20)?,
                 proxy_jump_host_id: row.get(21)?,
                 start_directory: row.get(22)?,
+                protocol: row.get(23)?,
+                ftp_security: row.get(24)?,
+                ftp_passive: row.get(25)?,
+                ftp_allow_invalid_cert: row.get(26)?,
             })
         })?;
 
@@ -2089,6 +2160,50 @@ mod tests {
         (db, dir)
     }
 
+    #[test]
+    fn ftp_host_round_trips() {
+        let (db, _dir) = test_db();
+        let mut h = sample_host("ftp-1");
+        h.protocol = "ftp".to_string();
+        h.port = 21;
+        h.ftp_security = Some("explicit".to_string());
+        h.ftp_passive = Some(true);
+        h.ftp_allow_invalid_cert = Some(true);
+        h.start_directory = Some("/public_html".to_string());
+        db.save_host(&h).unwrap();
+        let back = db.get_host("ftp-1").unwrap().unwrap();
+        assert!(back.is_ftp());
+        assert_eq!(back.ftp_security.as_deref(), Some("explicit"));
+        assert_eq!(back.ftp_passive, Some(true));
+        assert_eq!(back.ftp_allow_invalid_cert, Some(true));
+        // SSH hosts keep the default protocol.
+        db.save_host(&sample_host("ssh-1")).unwrap();
+        let ssh = db
+            .list_hosts()
+            .unwrap()
+            .into_iter()
+            .find(|x| x.id == "ssh-1")
+            .unwrap();
+        assert_eq!(ssh.protocol, "ssh");
+        assert!(!ssh.is_ftp());
+    }
+
+    #[test]
+    fn host_json_without_protocol_defaults_to_ssh() {
+        // Payloads from older frontends and backups have no protocol field.
+        let json = serde_json::json!({
+            "id": "x", "label": "x", "host": "h", "port": 22, "username": "u",
+            "auth_type": "password", "group_id": null, "created_at": "t", "updated_at": "t",
+            "key_path": null, "color": null, "notes": null, "environment": null, "os_type": null,
+            "startup_command": null, "proxy_jump": null, "proxy_jump_host_id": null,
+            "start_directory": null, "keep_alive_interval": null, "default_shell": null,
+            "font_size": null, "last_connected_at": null, "connection_count": null
+        });
+        let h: SavedHost = serde_json::from_value(json).unwrap();
+        assert_eq!(h.protocol, "ssh");
+        assert_eq!(h.ftp_security, None);
+    }
+
     fn sample_host(id: &str) -> SavedHost {
         SavedHost {
             id: id.to_string(),
@@ -2114,6 +2229,10 @@ mod tests {
             font_size: None,
             last_connected_at: None,
             connection_count: Some(0),
+            protocol: "ssh".to_string(),
+            ftp_security: None,
+            ftp_passive: None,
+            ftp_allow_invalid_cert: None,
         }
     }
 

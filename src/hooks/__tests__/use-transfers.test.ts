@@ -66,6 +66,7 @@ describe("useTransfers", () => {
       transfer({ transfer_id: "sftp-t", sftp_session_id: "s1" }),
       transfer({ transfer_id: "scp-t", sftp_session_id: undefined, scp_session_id: "s2" }),
       transfer({ transfer_id: "s3-t", sftp_session_id: undefined, s3_session_id: "s3" }),
+      transfer({ transfer_id: "ftp-t", sftp_session_id: undefined, ftp_session_id: "f1" }),
     );
     const { result } = renderHook(() => useTransfers());
 
@@ -79,10 +80,13 @@ describe("useTransfers", () => {
     await vi.waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
     result.current.onRetry("s3-t");
     await vi.waitFor(() => expect(invoke).toHaveBeenCalledTimes(3));
+    result.current.onCancel("ftp-t");
+    await vi.waitFor(() => expect(invoke).toHaveBeenCalledTimes(4));
 
     expect(invoke).toHaveBeenCalledWith("sftp_cancel_transfer", { transferId: "sftp-t" });
     expect(invoke).toHaveBeenCalledWith("scp_cancel_transfer", { transferId: "scp-t" });
     expect(invoke).toHaveBeenCalledWith("s3_retry_transfer", { transferId: "s3-t" });
+    expect(invoke).toHaveBeenCalledWith("ftp_cancel_transfer", { transferId: "ftp-t" });
   });
 
   it("drops the row locally when cancel fails on the backend", async () => {
@@ -108,9 +112,10 @@ describe("useTransfers", () => {
 
     expect(useTransferStore.getState().transfers.has("done")).toBe(false);
     expect(useTransferStore.getState().transfers.has("active")).toBe(true);
-    await vi.waitFor(() => expect(invoke).toHaveBeenCalledTimes(3));
+    await vi.waitFor(() => expect(invoke).toHaveBeenCalledTimes(4));
     expect(invoke).toHaveBeenCalledWith("sftp_clear_finished_transfers");
     expect(invoke).toHaveBeenCalledWith("scp_clear_finished_transfers");
+    expect(invoke).toHaveBeenCalledWith("ftp_clear_finished_transfers");
     expect(invoke).toHaveBeenCalledWith("s3_clear_finished_transfers");
   });
 

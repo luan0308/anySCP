@@ -161,6 +161,13 @@ pub async fn pf_start_tunnel(
             crate::types::SshError::SessionNotFound(format!("host not found: {host_id}"))
         })?;
 
+    if saved_host.is_ftp() {
+        return Err(crate::types::SshError::ConnectionFailed(format!(
+            "{} is an FTP server; port forwarding needs an SSH host",
+            saved_host.label
+        )));
+    }
+
     // Resolve credentials from vault
     let vid = host_id.clone();
     let auth_type = saved_host.auth_type.clone();

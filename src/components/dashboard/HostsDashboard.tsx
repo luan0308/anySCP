@@ -32,6 +32,8 @@ import { useTabStore } from "../../stores/tab-store";
 import { useSftpStore } from "../../stores/sftp-store";
 import { useS3Store } from "../../stores/s3-store";
 import type { SavedHost, HostGroup, RecentConnection, S3Connection } from "../../types";
+import { isFtpHost } from "../../types";
+import { openFtpExplorer } from "../../lib/ftp-explorer";
 import { HostCard } from "./HostCard";
 import { GroupCard } from "./GroupCard";
 import { S3Card } from "./S3Card";
@@ -200,10 +202,37 @@ export function HostsDashboard() {
 
   // ─── Connect handlers ──────────────────────────────────────────────────────
 
+  // FTP/FTPS hosts have no terminal: every "connect" opens the explorer.
+  const exploreFtp = useCallback(async (host: SavedHost) => {
+    const label = host.label || `${host.username}@${host.host}`;
+    const handle = openFtpExplorer(host);
+    let cancelled = false;
+    const cancel = () => {
+      cancelled = true;
+      handle.cancel();
+      setConnectingHost(null);
+    };
+    setConnectingHost({ label, error: null, retry: () => void exploreFtp(host), cancel });
+    try {
+      const id = await handle.done;
+      if (id && !cancelled) setConnectingHost(null);
+    } catch (err) {
+      if (cancelled) return;
+      const msg = err && typeof err === "object" && "message" in err
+        ? String((err as { message: string }).message)
+        : "Connection failed. Check host, port, and credentials.";
+      setConnectingHost({ label, error: msg, retry: () => void exploreFtp(host), cancel: null });
+    }
+  }, []);
+
   // Connect directly using saved credentials from the vault.
   // If connection fails (e.g., no saved credential), the error shows in the terminal overlay.
   const connectToHost = useCallback(
     async (host: SavedHost) => {
+      if (isFtpHost(host)) {
+        await exploreFtp(host);
+        return;
+      }
       const label = host.label || `${host.username}@${host.host}`;
       const attemptId = crypto.randomUUID();
       let cancelled = false;
@@ -240,11 +269,16 @@ export function HostsDashboard() {
         setConnectingHost({ label, error: msg, retry: () => void connectToHost(host), cancel: null });
       }
     },
-    [],
+    [exploreFtp],
   );
 
   const handleRecentConnect = useCallback(
     async (conn: RecentConnection) => {
+      const saved = useHostsStore.getState().hosts.find((h) => h.id === conn.host_id);
+      if (saved && isFtpHost(saved)) {
+        await exploreFtp(saved);
+        return;
+      }
       const label = conn.host_label || `${conn.username}@${conn.host}`;
       const attemptId = crypto.randomUUID();
       let cancelled = false;
@@ -281,7 +315,7 @@ export function HostsDashboard() {
         setConnectingHost({ label, error: msg, retry: () => void handleRecentConnect(conn), cancel: null });
       }
     },
-    [],
+    [exploreFtp],
   );
 
   // Explore: connect SSH + open a file browser + switch to Files page.
@@ -301,6 +335,11 @@ export function HostsDashboard() {
       };
       setConnectingHost({ label, error: null, retry: () => void exploreHost(host), cancel });
       try {
+        if (isFtpHost(host)) {
+          await exploreFtp(host);
+          return;
+        }
+
         const { invoke } = await import("@tauri-apps/api/core");
 
         const sessionId = await invoke<string>("connect_saved_host_no_pty", { hostId: host.id, attemptId });
@@ -347,7 +386,7 @@ export function HostsDashboard() {
         setConnectingHost({ label, error: msg, retry: () => void exploreHost(host), cancel: null });
       }
     },
-    [],
+    [exploreFtp],
   );
 
   // ─── Host action handlers ──────────────────────────────────────────────────

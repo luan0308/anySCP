@@ -6,7 +6,8 @@ import { useHostsStore } from "../../stores/hosts-store";
 import { useGroupsStore } from "../../stores/groups-store";
 import { useSessionStore } from "../../stores/session-store";
 import { useTabStore } from "../../stores/tab-store";
-import type { SavedHost, HostConfig, StoredCredential } from "../../types";
+import type { SavedHost, HostConfig, StoredCredential, HostProtocol, FtpSecurity } from "../../types";
+import { openFtpExplorer } from "../../lib/ftp-explorer";
 import { HOST_COLORS } from "./HostCard";
 import { CustomSelect } from "../shared/CustomSelect";
 
@@ -20,6 +21,10 @@ export const NEW_HOST_ID = "__new__";
 
 interface FormState {
   // Connection
+  protocol: HostProtocol;
+  ftpSecurity: FtpSecurity;
+  ftpPassive: boolean;
+  ftpAllowInvalidCert: boolean;
   label: string;
   host: string;
   port: string;
@@ -45,6 +50,10 @@ interface FormState {
 }
 
 const EMPTY_FORM: FormState = {
+  protocol: "ssh",
+  ftpSecurity: "explicit",
+  ftpPassive: true,
+  ftpAllowInvalidCert: false,
   label: "",
   host: "",
   port: "22",
@@ -79,6 +88,10 @@ function savedHostToForm(host: SavedHost): FormState {
   const authType: AuthType =
     host.auth_type === "privateKey" ? "privateKey" : "password";
   return {
+    protocol: host.protocol === "ftp" ? "ftp" : "ssh",
+    ftpSecurity: host.ftp_security ?? "none",
+    ftpPassive: host.ftp_passive ?? true,
+    ftpAllowInvalidCert: host.ftp_allow_invalid_cert ?? false,
     label: host.label ?? "",
     host: host.host,
     port: String(host.port),
@@ -100,6 +113,14 @@ function savedHostToForm(host: SavedHost): FormState {
     notes: host.notes ?? "",
   };
 }
+
+/** Default port for a protocol / FTPS mode. */
+function defaultPort(protocol: HostProtocol, security: FtpSecurity): string {
+  if (protocol === "ssh") return "22";
+  return security === "implicit" ? "990" : "21";
+}
+
+const DEFAULT_PORTS = new Set(["", "21", "22", "990"]);
 
 // ─── Section header ───────────────────────────────────────────────────────────
 
@@ -244,6 +265,24 @@ export function HostEditModal() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  /** Switch protocol / FTPS mode, following the port along when it is still
+   *  a default one (22, 21 or 990) so a custom port is never overwritten. */
+  const setProtocol = (protocol: HostProtocol, security: FtpSecurity = form.ftpSecurity) => {
+    setError(null);
+    if (protocol === "ftp") setTunnelEnabled(false);
+    setForm((prev) => ({
+      ...prev,
+      protocol,
+      ftpSecurity: security,
+      authType: protocol === "ftp" ? "password" : prev.authType,
+      port: DEFAULT_PORTS.has(prev.port.trim()) ? defaultPort(protocol, security) : prev.port,
+    }));
+  };
+
+  const isFtp = form.protocol === "ftp";
+  // Only SSH hosts can serve as a tunnel.
+  const tunnelCandidates = hosts.filter((h) => h.protocol !== "ftp");
+
   // ── Validation ──────────────────────────────────────────────────────────────
   const validate = (): string | null => {
     if (!form.host.trim()) return "Host is required";
@@ -256,8 +295,11 @@ export function HostEditModal() {
       const kai = parseInt(form.keepAliveInterval, 10);
       if (isNaN(kai) || kai < 0) return "Keep Alive must be a positive number";
     }
-    if (tunnelEnabled) {
-      const candidates = hosts.filter((h) => h.id !== originalHost?.id);
+    if (isFtp && form.startDirectory.trim() && !form.startDirectory.trim().startsWith("/")) {
+      return "Start folder must be an absolute path, like /public_html";
+    }
+    if (tunnelEnabled && !isFtp) {
+      const candidates = tunnelCandidates.filter((h) => h.id !== originalHost?.id);
       if (candidates.length === 0) {
         return "No other saved hosts are available to tunnel through";
       }
@@ -297,9 +339,41 @@ export function HostEditModal() {
       font_size: null,
       last_connected_at: null,
       connection_count: null,
+      protocol: "ssh",
     };
+    if (isFtp) {
+      return {
+        ...base,
+        protocol: "ftp",
+        ftp_security: form.ftpSecurity,
+        ftp_passive: form.ftpPassive,
+        ftp_allow_invalid_cert: form.ftpSecurity !== "none" && form.ftpAllowInvalidCert,
+        label: form.label.trim(),
+        host: form.host.trim(),
+        port: parseInt(form.port, 10),
+        username: form.username.trim(),
+        auth_type: "password",
+        group_id: form.groupId === "" ? null : form.groupId,
+        updated_at: new Date().toISOString(),
+        key_path: null,
+        proxy_jump: null,
+        proxy_jump_host_id: null,
+        keep_alive_interval: null,
+        default_shell: null,
+        startup_command: null,
+        start_directory: form.startDirectory.trim() || null,
+        color: form.color || null,
+        environment: form.environment || null,
+        os_type: null,
+        notes: form.notes.trim() || null,
+      };
+    }
     return {
       ...base,
+      protocol: "ssh",
+      ftp_security: null,
+      ftp_passive: null,
+      ftp_allow_invalid_cert: null,
       label: form.label.trim(),
       host: form.host.trim(),
       port: parseInt(form.port, 10),
@@ -390,6 +464,13 @@ export function HostEditModal() {
       // Persist credential to keychain before connecting — the Rust backend
       // reads credentials exclusively from the keychain, never from the frontend.
       await syncVaultCredential(host.id, typedInvoke);
+
+      if (isFtp) {
+        // FTP has no terminal: "Connect" opens the explorer.
+        await openFtpExplorer(host).done;
+        close();
+        return;
+      }
 
       // The backend resolves host config + credentials from its own DB and keychain.
       const sessionId = await invoke<string>("connect_saved_host", { hostId: host.id });
@@ -505,6 +586,50 @@ export function HostEditModal() {
               {/* ════════════════ CONNECTION ════════════════ */}
               <SectionHeader>Connection</SectionHeader>
 
+              {/* Protocol (+ FTPS mode) */}
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label htmlFor="hem-protocol" className={labelClass}>
+                    Protocol
+                  </label>
+                  <CustomSelect
+                    id="hem-protocol"
+                    data-testid="host-modal-protocol"
+                    value={form.protocol}
+                    onChange={(v) => setProtocol(v as HostProtocol)}
+                    disabled={isBusy}
+                    options={[
+                      { value: "ssh", label: "SSH (terminal + SFTP)" },
+                      { value: "ftp", label: "FTP / FTPS" },
+                    ]}
+                  />
+                </div>
+                {isFtp && (
+                  <div className="flex-1">
+                    <label htmlFor="hem-ftp-security" className={labelClass}>
+                      Encryption
+                    </label>
+                    <CustomSelect
+                      id="hem-ftp-security"
+                      data-testid="host-modal-ftp-security"
+                      value={form.ftpSecurity}
+                      onChange={(v) => setProtocol("ftp", v as FtpSecurity)}
+                      disabled={isBusy}
+                      options={[
+                        { value: "explicit", label: "FTPS (explicit TLS)" },
+                        { value: "implicit", label: "FTPS (implicit TLS)" },
+                        { value: "none", label: "None (plain FTP)" },
+                      ]}
+                    />
+                  </div>
+                )}
+              </div>
+              {isFtp && form.ftpSecurity === "none" && (
+                <p className="-mt-1.5 text-[length:var(--text-xs)] text-status-connecting">
+                  Plain FTP sends the password and files unencrypted. Prefer FTPS when the host supports it.
+                </p>
+              )}
+
               {/* Label */}
               <div>
                 <label htmlFor="hem-label" className={labelClass}>
@@ -578,6 +703,7 @@ export function HostEditModal() {
 
               {/* Auth Type + Group row */}
               <div className="flex gap-3">
+                {!isFtp && (
                 <div className="flex-1">
                   <label htmlFor="hem-auth" className={labelClass}>
                     Auth Type
@@ -594,6 +720,7 @@ export function HostEditModal() {
                     ]}
                   />
                 </div>
+                )}
 
                 <div className="flex-1">
                   <label htmlFor="hem-group" className={labelClass}>
@@ -747,6 +874,44 @@ export function HostEditModal() {
                 </>
               )}
 
+              {isFtp && (
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2.5 select-none cursor-pointer">
+                    <input
+                      type="checkbox"
+                      data-testid="host-modal-ftp-passive"
+                      checked={form.ftpPassive}
+                      disabled={isBusy}
+                      onChange={(e) => setField("ftpPassive", e.target.checked)}
+                      className="h-4 w-4 rounded border-border bg-bg-base text-accent accent-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 cursor-pointer"
+                    />
+                    <span className="text-[length:var(--text-sm)] text-text-primary">
+                      Passive mode
+                      <span className="ml-1 text-text-muted">(recommended)</span>
+                    </span>
+                  </label>
+                  {form.ftpSecurity !== "none" && (
+                    <label className="flex items-center gap-2.5 select-none cursor-pointer">
+                      <input
+                        type="checkbox"
+                        data-testid="host-modal-ftp-invalid-cert"
+                        checked={form.ftpAllowInvalidCert}
+                        disabled={isBusy}
+                        onChange={(e) => setField("ftpAllowInvalidCert", e.target.checked)}
+                        className="h-4 w-4 rounded border-border bg-bg-base text-accent accent-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 cursor-pointer"
+                      />
+                      <span className="text-[length:var(--text-sm)] text-text-primary">
+                        Accept invalid certificate
+                        <span className="ml-1 text-text-muted">
+                          (shared hosting often uses the provider's certificate)
+                        </span>
+                      </span>
+                    </label>
+                  )}
+                </div>
+              )}
+
+              {!isFtp && (<>
               {/* ════════════════ TUNNEL ════════════════ */}
               <SectionHeader>Tunnel</SectionHeader>
 
@@ -759,7 +924,7 @@ export function HostEditModal() {
                 }}
                 value={form.proxyJumpHostId}
                 onChange={(v) => setField("proxyJumpHostId", v)}
-                hosts={hosts}
+                hosts={tunnelCandidates}
                 currentHostId={originalHost?.id ?? null}
                 disabled={isBusy}
                 labelClass={labelClass}
@@ -818,6 +983,7 @@ export function HostEditModal() {
                 {/* TODO: startup_command execution should be handled in the Rust backend
                     after the shell prompt is detected — not sent as raw input from the frontend. */}
               </div>
+              </>)}
 
               {/* Start Directory */}
               <div>
@@ -831,12 +997,14 @@ export function HostEditModal() {
                   type="text"
                   value={form.startDirectory}
                   onChange={(e) => setField("startDirectory", e.target.value)}
-                  placeholder="~/projects or /var/www"
+                  placeholder={isFtp ? "/public_html" : "~/projects or /var/www"}
                   disabled={isBusy}
                   className={`${inputClass} font-mono`}
                 />
                 <p className="mt-1 text-[length:var(--text-xs)] text-text-muted">
-                  Directory the file browser opens in. Defaults to the home folder.
+                  {isFtp
+                    ? "Folder the file browser opens in (absolute path). Defaults to the login folder."
+                    : "Directory the file browser opens in. Defaults to the home folder."}
                 </p>
               </div>
 
@@ -913,6 +1081,7 @@ export function HostEditModal() {
                   />
                 </div>
 
+                {!isFtp && (
                 <div className="flex-1">
                   <label htmlFor="hem-os" className={labelClass}>
                     OS Type
@@ -932,6 +1101,7 @@ export function HostEditModal() {
                     ]}
                   />
                 </div>
+                )}
               </div>
 
               {/* ════════════════ NOTES ════════════════ */}

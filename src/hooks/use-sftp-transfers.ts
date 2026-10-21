@@ -36,6 +36,12 @@ export function useSftpTransfers() {
           hydrate(scpItems);
         } catch { /* Backend may not have this command yet */ }
 
+        // Hydrate FTP transfers
+        try {
+          const ftpItems = await invoke<TransferEvent[]>("ftp_list_transfers");
+          hydrate(ftpItems);
+        } catch { /* Backend may not have this command yet */ }
+
         // Hydrate S3 transfers
         try {
           const s3Items = await invoke<TransferEvent[]>("s3_list_transfers");
@@ -118,6 +124,44 @@ export function useSftpTransfers() {
           }
 
           // Auto-open popover when a new transfer starts
+          if (isNew && (transfer.status === "InProgress" || transfer.status === "Queued")) {
+            if (!useTransferStore.getState().popoverOpen) {
+              setPopoverOpen(true);
+            }
+          }
+        });
+
+        if (aborted) { unsub(); } else { unlisten = unsub; }
+      } catch { /* Tauri API not available */ }
+    })();
+
+    return () => { aborted = true; unlisten?.(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateTransfer, setPopoverOpen, setHostLabel]);
+
+  // Listen for live FTP transfer events (FTP sessions share the sftp store)
+  useEffect(() => {
+    let aborted = false;
+    let unlisten: (() => void) | undefined;
+
+    (async () => {
+      try {
+        const { listen } = await import("@tauri-apps/api/event");
+        if (aborted) return;
+
+        const unsub = await listen<TransferEvent>("ftp:transfer", (event) => {
+          const transfer = event.payload;
+          const isNew = !useTransferStore.getState().transfers.has(transfer.transfer_id);
+
+          updateTransfer(transfer);
+
+          if (transfer.ftp_session_id) {
+            const ftpSession = useSftpStore.getState().sessions.get(transfer.ftp_session_id);
+            if (ftpSession) {
+              setHostLabel(transfer.ftp_session_id, ftpSession.label);
+            }
+          }
+
           if (isNew && (transfer.status === "InProgress" || transfer.status === "Queued")) {
             if (!useTransferStore.getState().popoverOpen) {
               setPopoverOpen(true);

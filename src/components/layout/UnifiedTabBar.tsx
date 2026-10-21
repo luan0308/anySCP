@@ -130,7 +130,8 @@ export function UnifiedTabBar() {
         }
       }
     } else if (tab.type === "sftp") {
-      try { await invoke("sftp_close", { sftpSessionId: tabId }); } catch { /* ok */ }
+      const { closeExplorerSession } = await import("../../lib/explorer-transport");
+      try { await closeExplorerSession(tab.transport ?? "sftp", tabId); } catch { /* ok */ }
       const { useSftpStore } = await import("../../stores/sftp-store");
       useSftpStore.getState().closeSession(tabId);
     } else if (tab.type === "s3") {
