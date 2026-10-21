@@ -53,7 +53,7 @@ export function ImportSshConfigModal({ onClose, onImported }: ImportSshConfigMod
     } catch (err) {
       const msg = err && typeof err === "object" && "message" in err
         ? String((err as { message: string }).message)
-        : "Failed to parse SSH config";
+        : "Não foi possível ler a configuração SSH";
       setScanError(msg);
     } finally {
       setScanning(false);
@@ -64,7 +64,7 @@ export function ImportSshConfigModal({ onClose, onImported }: ImportSshConfigMod
     try {
       const { open } = await import("@tauri-apps/plugin-dialog");
       const path = await open({
-        title: "Select SSH config file",
+        title: "Selecionar arquivo de configuração SSH",
         multiple: false,
       });
       if (path && typeof path === "string") {
@@ -98,7 +98,7 @@ export function ImportSshConfigModal({ onClose, onImported }: ImportSshConfigMod
     } catch (err) {
       const msg = err && typeof err === "object" && "message" in err
         ? String((err as { message: string }).message)
-        : "Import failed";
+        : "Falha ao importar";
       setScanError(msg);
     } finally {
       setImporting(false);
@@ -130,16 +130,16 @@ export function ImportSshConfigModal({ onClose, onImported }: ImportSshConfigMod
     <ModalShell
       open
       onClose={onClose}
-      title="Import SSH Config"
+      title="Importar configuração SSH"
       maxWidth="lg"
       scrollable
       busy={importing}
       footer={
         result ? (
-          <button type="button" onClick={onClose} className={BTN_PRIMARY}>Done</button>
+          <button type="button" onClick={onClose} className={BTN_PRIMARY}>Concluir</button>
         ) : (
           <>
-            <button type="button" onClick={onClose} disabled={importing} className={BTN_GHOST}>Cancel</button>
+            <button type="button" onClick={onClose} disabled={importing} className={BTN_GHOST}>Cancelar</button>
             <button
               type="button"
               data-testid="import-ssh-config-submit"
@@ -147,7 +147,9 @@ export function ImportSshConfigModal({ onClose, onImported }: ImportSshConfigMod
               disabled={importing || importableCount === 0}
               className={BTN_PRIMARY}
             >
-              {importing ? "Importing…" : `Import ${importableCount} host${importableCount !== 1 ? "s" : ""}`}
+              {importing
+                ? "Importando…"
+                : `Importar ${importableCount} ${importableCount === 1 ? "servidor" : "servidores"}`}
             </button>
           </>
         )
@@ -162,11 +164,13 @@ export function ImportSshConfigModal({ onClose, onImported }: ImportSshConfigMod
               </div>
               <div className="text-center">
                 <p className="text-[length:var(--text-sm)] font-semibold text-text-primary">
-                  {result.imported} host{result.imported !== 1 ? "s" : ""} imported
+                  {result.imported === 1
+                    ? "1 servidor importado"
+                    : `${result.imported} servidores importados`}
                 </p>
                 {result.skipped > 0 && (
                   <p className="text-[length:var(--text-xs)] text-text-muted mt-1">
-                    {result.skipped} skipped
+                    {result.skipped === 1 ? "1 pulado" : `${result.skipped} pulados`}
                   </p>
                 )}
                 {result.errors.length > 0 && (
@@ -181,7 +185,7 @@ export function ImportSshConfigModal({ onClose, onImported }: ImportSshConfigMod
           ) : scanning ? (
             <div className="flex flex-col items-center gap-4 py-12">
               <Loader2 size={26} strokeWidth={2} className="text-accent motion-safe:animate-spin" />
-              <p className="text-[length:var(--text-sm)] text-text-muted">Scanning SSH config...</p>
+              <p className="text-[length:var(--text-sm)] text-text-muted">Lendo configuração SSH…</p>
             </div>
           ) : scanError ? (
             <div className="flex flex-col items-center gap-4 py-8">
@@ -191,18 +195,18 @@ export function ImportSshConfigModal({ onClose, onImported }: ImportSshConfigMod
                 onClick={handleBrowse}
                 className="px-4 py-2 text-[length:var(--text-sm)] font-medium text-text-inverse bg-accent hover:bg-accent-hover rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                Browse for config file
+                Procurar arquivo de configuração
               </button>
             </div>
           ) : entries.length === 0 ? (
             <div className="flex flex-col items-center gap-4 py-8">
               <FileText size={26} strokeWidth={1.5} className="text-text-muted/40" />
-              <p className="text-[length:var(--text-sm)] text-text-muted">No hosts found in SSH config</p>
+              <p className="text-[length:var(--text-sm)] text-text-muted">Nenhum servidor encontrado na configuração SSH</p>
               <button
                 onClick={handleBrowse}
                 className="px-3 py-1.5 text-[length:var(--text-xs)] font-medium text-text-muted border border-border rounded-lg hover:text-text-primary hover:bg-bg-overlay transition-all duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                Try a different file
+                Tentar outro arquivo
               </button>
             </div>
           ) : (
@@ -216,17 +220,17 @@ export function ImportSshConfigModal({ onClose, onImported }: ImportSshConfigMod
                   onClick={() => void handleBrowse()}
                   className="text-[length:var(--text-2xs)] text-accent hover:text-accent-hover transition-colors duration-[var(--duration-fast)] shrink-0"
                 >
-                  Change
+                  Alterar
                 </button>
               </div>
 
               {/* Select all / none */}
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-[length:var(--text-xs)] text-text-muted">
-                  {importableCount} of {entries.filter((e) => !e.is_pattern).length} selected
+                  {importableCount} de {entries.filter((e) => !e.is_pattern).length} selecionados
                 </span>
-                <button onClick={selectAll} className="text-[length:var(--text-2xs)] text-accent hover:text-accent-hover">All</button>
-                <button onClick={selectNone} className="text-[length:var(--text-2xs)] text-accent hover:text-accent-hover">None</button>
+                <button onClick={selectAll} className="text-[length:var(--text-2xs)] text-accent hover:text-accent-hover">Todos</button>
+                <button onClick={selectNone} className="text-[length:var(--text-2xs)] text-accent hover:text-accent-hover">Nenhum</button>
               </div>
 
               {/* Host list */}
@@ -259,18 +263,18 @@ export function ImportSshConfigModal({ onClose, onImported }: ImportSshConfigMod
                           </span>
                           {entry.is_pattern && (
                             <span className="px-1.5 py-px rounded text-[9px] uppercase tracking-wide font-semibold bg-bg-subtle text-text-muted">
-                              pattern
+                              curinga
                             </span>
                           )}
                           {entry.already_exists && (
                             <span className="px-1.5 py-px rounded text-[9px] uppercase tracking-wide font-semibold bg-status-connecting/10 text-status-connecting">
-                              exists
+                              já existe
                             </span>
                           )}
                         </div>
                         <p className="text-[length:var(--text-2xs)] font-mono text-text-muted truncate">
                           {entry.user ?? "root"}@{entry.hostname ?? entry.host_alias}:{entry.port ?? 22}
-                          {entry.identity_file && ` key:${entry.identity_file.split("/").pop()}`}
+                          {entry.identity_file && ` chave:${entry.identity_file.split("/").pop()}`}
                         </p>
                       </div>
                     </label>

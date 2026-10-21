@@ -22,10 +22,10 @@ const INPUT_CLASS = [
 ].join(" ");
 
 const BTN_SECONDARY = [
-  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg shrink-0",
-  "text-[length:var(--text-sm)] font-medium",
-  "bg-bg-base border border-border text-text-secondary",
-  "hover:text-text-primary hover:border-border-focus",
+  "flex items-center gap-1.5 h-9 px-4 rounded-full shrink-0",
+  "text-[length:var(--text-sm)] font-bold",
+  "bg-white/[0.08] text-text-primary",
+  "hover:bg-white/[0.13]",
   "disabled:opacity-50 disabled:pointer-events-none",
   "transition-all duration-[var(--duration-fast)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",

@@ -5,6 +5,7 @@ import { ContextMenu } from "../shared/ContextMenu";
 import { ConfirmDangerDialog } from "../shared/ConfirmDangerDialog";
 import { getHostColor } from "./HostCard";
 import { CardActionButton, CardActionStrip } from "./CardActionButton";
+import { EnvBadge } from "../brand";
 
 interface S3CardProps {
   conn: S3Connection;
@@ -12,28 +13,6 @@ interface S3CardProps {
   onEdit: (conn: S3Connection) => void;
   onDuplicate: (conn: S3Connection) => void;
   onDelete: (conn: S3Connection) => void;
-}
-
-// ─── Environment badge (matches HostCard) ─────────────────────────────────────
-
-type EnvironmentValue = "production" | "staging" | "dev" | "testing";
-
-const ENV_BADGE_CLASSES: Record<EnvironmentValue, string> = {
-  production: "bg-[oklch(0.650_0.200_25/0.15)] text-[oklch(0.650_0.200_25)]",
-  staging:    "bg-[oklch(0.750_0.160_80/0.15)] text-[oklch(0.750_0.160_80)]",
-  dev:        "bg-[oklch(0.720_0.180_155/0.15)] text-[oklch(0.720_0.180_155)]",
-  testing:    "bg-[oklch(0.700_0.150_250/0.15)] text-[oklch(0.700_0.150_250)]",
-};
-
-const ENV_LABELS: Record<EnvironmentValue, string> = {
-  production: "PROD",
-  staging:    "STAGE",
-  dev:        "DEV",
-  testing:    "TEST",
-};
-
-function isEnvironmentValue(val: string): val is EnvironmentValue {
-  return val === "production" || val === "staging" || val === "dev" || val === "testing";
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -49,7 +28,6 @@ export function S3Card({ conn, onConnect, onEdit, onDuplicate, onDelete }: S3Car
   if (conn.bucket) subtitleParts.push(conn.bucket);
   const subtitle = subtitleParts.join(" · ");
 
-  const env = conn.environment && isEnvironmentValue(conn.environment) ? conn.environment : null;
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -65,10 +43,10 @@ export function S3Card({ conn, onConnect, onEdit, onDuplicate, onDelete }: S3Car
   };
 
   const contextItems = [
-    { label: "Explore", icon: FolderOpen, onClick: () => onConnect(conn) },
-    { label: "Edit", icon: Pencil, onClick: () => onEdit(conn) },
-    { label: "Duplicate", icon: Copy, onClick: () => onDuplicate(conn) },
-    { label: "Delete", icon: Trash2, danger: true, separator: true, onClick: () => setConfirmDelete(true) },
+    { label: "Abrir arquivos", icon: FolderOpen, onClick: () => onConnect(conn) },
+    { label: "Editar", icon: Pencil, onClick: () => onEdit(conn) },
+    { label: "Duplicar", icon: Copy, onClick: () => onDuplicate(conn) },
+    { label: "Excluir", icon: Trash2, danger: true, separator: true, onClick: () => setConfirmDelete(true) },
   ];
 
   return (
@@ -82,7 +60,7 @@ export function S3Card({ conn, onConnect, onEdit, onDuplicate, onDelete }: S3Car
         onClick={() => onConnect(conn)}
         onKeyDown={handleKeyDown}
         onContextMenu={handleContextMenu}
-        title={`Connect to ${displayName}`}
+        title={`Conectar a ${displayName}`}
         className={[
           // grab/grabbing communicates the card is draggable; a plain click still
           // connects (drag needs a 5px move to activate first).
@@ -107,9 +85,9 @@ export function S3Card({ conn, onConnect, onEdit, onDuplicate, onDelete }: S3Car
         <CardActionStrip>
           <CardActionButton
             icon={FolderOpen}
-            label="Explore"
+            label="Arquivos"
             onClick={() => onConnect(conn)}
-            ariaLabel={`Open explorer for ${displayName}`}
+            ariaLabel={`Abrir arquivos de ${displayName}`}
             testId={`s3-card-${conn.id}-explorer`}
           />
         </CardActionStrip>
@@ -135,16 +113,7 @@ export function S3Card({ conn, onConnect, onEdit, onDuplicate, onDelete }: S3Car
             <p className="text-[length:var(--text-xs)] text-text-muted font-mono truncate">
               {subtitle}
             </p>
-            {env && (
-              <span
-                className={[
-                  "inline-flex items-center px-1 py-px rounded text-[11px] font-semibold tracking-wide leading-none shrink-0",
-                  ENV_BADGE_CLASSES[env],
-                ].join(" ")}
-              >
-                {ENV_LABELS[env]}
-              </span>
-            )}
+            <EnvBadge env={conn.environment} />
           </div>
         </div>
       </div>
@@ -159,8 +128,8 @@ export function S3Card({ conn, onConnect, onEdit, onDuplicate, onDelete }: S3Car
 
       <ConfirmDangerDialog
         open={confirmDelete}
-        title="Delete this S3 connection?"
-        message="This connection will be permanently removed."
+        title="Excluir esta conexão S3?"
+        message="Esta conexão será removida permanentemente."
         onCancel={() => setConfirmDelete(false)}
         onConfirm={() => {
           setConfirmDelete(false);

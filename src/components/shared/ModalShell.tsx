@@ -6,16 +6,16 @@ import { ModalBackdrop } from "./ModalBackdrop";
 // Import these in any modal footer so every button looks identical.
 
 export const BTN_GHOST =
-  "px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
+  "h-10 px-4 text-[length:var(--text-sm)] font-bold text-text-secondary hover:text-text-primary rounded-full transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
 
 export const BTN_SECONDARY =
-  "px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-secondary hover:text-text-primary bg-bg-subtle hover:bg-bg-muted border border-border disabled:opacity-50 rounded-lg transition-all duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "h-10 px-5 text-[length:var(--text-sm)] font-bold text-text-primary bg-transparent hover:bg-accent-muted border border-accent disabled:opacity-50 rounded-full transition-all duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export const BTN_PRIMARY =
-  "px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-inverse bg-accent hover:bg-accent-hover disabled:opacity-50 rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg-overlay";
+  "h-10 px-5 text-[length:var(--text-sm)] font-bold text-text-inverse bg-accent hover:bg-accent-hover disabled:opacity-50 rounded-full transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg-overlay";
 
 export const BTN_DANGER =
-  "px-4 py-1.5 text-[length:var(--text-sm)] font-medium text-text-inverse bg-status-error hover:opacity-90 active:opacity-80 disabled:opacity-50 rounded-lg transition-opacity duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "h-10 px-5 text-[length:var(--text-sm)] font-bold text-text-inverse bg-status-error hover:opacity-90 active:opacity-80 disabled:opacity-50 rounded-full transition-opacity duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 // ─── ModalShell ───────────────────────────────────────────────────────────────
 

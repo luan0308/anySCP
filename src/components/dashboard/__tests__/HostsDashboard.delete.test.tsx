@@ -65,8 +65,8 @@ async function deleteHost() {
   render(<HostsDashboard />);
   const card = await screen.findByTestId("host-card-h1");
   fireEvent.contextMenu(card);
-  fireEvent.click(screen.getByText("Delete"));
-  fireEvent.click(await screen.findByRole("button", { name: "Confirm" }));
+  fireEvent.click(screen.getByText("Excluir"));
+  fireEvent.click(await screen.findByRole("button", { name: "Confirmar" }));
 }
 
 const toastMessages = () => useToastStore.getState().toasts.map((t) => t.message);
@@ -91,7 +91,7 @@ describe("HostsDashboard delete", () => {
 
     await deleteHost();
 
-    await waitFor(() => expect(toastMessages()).toEqual(['Couldn\'t delete "web".']));
+    await waitFor(() => expect(toastMessages()).toEqual(['Não foi possível excluir "web".']));
     // The refetch is the recovery for the already-deleted row: without it the
     // card stays on screen and the next click repeats the same failure.
     await waitFor(() => {

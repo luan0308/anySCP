@@ -69,7 +69,7 @@ describe("HostCard context menu", () => {
   it("wires Duplicate to onDuplicate (the credential-copying path)", () => {
     const { host, onDuplicate } = renderCard();
     openContextMenu();
-    fireEvent.click(screen.getByText("Duplicate"));
+    fireEvent.click(screen.getByText("Duplicar"));
     expect(onDuplicate).toHaveBeenCalledTimes(1);
     expect(onDuplicate).toHaveBeenCalledWith(host);
   });
@@ -77,9 +77,9 @@ describe("HostCard context menu", () => {
   it("wires Delete to onDelete after the danger confirmation", () => {
     const { host, onDelete } = renderCard();
     openContextMenu();
-    fireEvent.click(screen.getByText("Delete"));
+    fireEvent.click(screen.getByText("Excluir"));
     // The Delete item opens a danger confirmation; confirm it (default label).
-    fireEvent.click(screen.getByRole("button", { name: /^confirm$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^confirmar$/i }));
     expect(onDelete).toHaveBeenCalledTimes(1);
     expect(onDelete).toHaveBeenCalledWith(host.id);
   });
@@ -103,12 +103,13 @@ describe("HostCard (FTP host)", () => {
         onDuplicate={vi.fn()}
       />,
     );
-    expect(screen.getByText(/FTPS, root/)).toBeTruthy();
+    expect(screen.getByText("FTPS")).toBeTruthy();
+    expect(screen.getByText(/^root · example\.com/)).toBeTruthy();
     expect(screen.queryByTestId("host-card-f1-terminal")).toBeNull();
     expect(screen.getByTestId("host-card-f1-explorer")).toBeTruthy();
     openContextMenu("f1");
     expect(screen.queryByText("Terminal")).toBeNull();
-    expect(screen.getAllByText("Explorer").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("Arquivos").length).toBeGreaterThanOrEqual(2);
   });
 
   it("calls plain FTP just FTP", () => {
@@ -123,6 +124,6 @@ describe("HostCard (FTP host)", () => {
         onDuplicate={vi.fn()}
       />,
     );
-    expect(screen.getByText(/^FTP, root/)).toBeTruthy();
+    expect(screen.getByText("FTP")).toBeTruthy();
   });
 });

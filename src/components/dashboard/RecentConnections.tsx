@@ -23,7 +23,7 @@ export function RecentConnections({
         id="recent-heading"
         className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted mb-3"
       >
-        Recent
+        Recentes
       </h2>
 
       {/* Horizontal scrollable chip row */}
@@ -31,7 +31,7 @@ export function RecentConnections({
         className="flex gap-2 overflow-x-auto pb-1"
         style={{ scrollbarWidth: "none" }}
         role="list"
-        aria-label="Recent connections"
+        aria-label="Conexões recentes"
       >
         {connections.map((conn) => {
           const displayName = conn.host_label || conn.host;
@@ -46,7 +46,7 @@ export function RecentConnections({
               data-recent-host-id={conn.host_id}
               data-recent-label={displayName}
               onClick={() => onConnect(conn)}
-              title={`Reconnect to ${displayName} (${conn.username}@${conn.host}:${conn.port})`}
+              title={`Reconectar a ${displayName} (${conn.username}@${conn.host}:${conn.port})`}
               className={[
                 "flex items-center gap-2 px-3 py-1.5 rounded-lg shrink-0",
                 "bg-bg-surface border border-border",

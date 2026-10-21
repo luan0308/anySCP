@@ -68,7 +68,7 @@ async function clickDuplicate() {
   render(<HostsDashboard />);
   const card = await screen.findByTestId("host-card-h1");
   fireEvent.contextMenu(card);
-  fireEvent.click(screen.getByText("Duplicate"));
+  fireEvent.click(screen.getByText("Duplicar"));
 }
 
 const toastMessages = () => useToastStore.getState().toasts.map((t) => t.message);
@@ -86,7 +86,7 @@ describe("HostsDashboard duplicate", () => {
 
     await waitFor(() =>
       expect(invoke).toHaveBeenCalledWith("duplicate_host", {
-        host: expect.objectContaining({ label: "web (copy)" }),
+        host: expect.objectContaining({ label: "web (cópia)" }),
         sourceId: "h1",
       }),
     );
@@ -104,7 +104,7 @@ describe("HostsDashboard duplicate", () => {
 
     await waitFor(() =>
       expect(toastMessages()).toEqual([
-        'Duplicated "web", but its saved credential didn\'t copy — re-enter it on the copy.',
+        '"web" foi duplicado, mas a senha salva não foi copiada. Digite a senha de novo na cópia.',
       ]),
     );
   });
@@ -114,6 +114,6 @@ describe("HostsDashboard duplicate", () => {
 
     await clickDuplicate();
 
-    await waitFor(() => expect(toastMessages()).toEqual(['Couldn\'t duplicate "web".']));
+    await waitFor(() => expect(toastMessages()).toEqual(['Não foi possível duplicar "web".']));
   });
 });

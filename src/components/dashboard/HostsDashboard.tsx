@@ -220,7 +220,7 @@ export function HostsDashboard() {
       if (cancelled) return;
       const msg = err && typeof err === "object" && "message" in err
         ? String((err as { message: string }).message)
-        : "Connection failed. Check host, port, and credentials.";
+        : "A conexão falhou. Confira o endereço, a porta e o usuário e a senha.";
       setConnectingHost({ label, error: msg, retry: () => void exploreFtp(host), cancel: null });
     }
   }, []);
@@ -265,7 +265,7 @@ export function HostsDashboard() {
         if (cancelled) return;
         const msg = err && typeof err === "object" && "message" in err
           ? String((err as { message: string }).message)
-          : "Connection failed. Check host, port, and credentials.";
+          : "A conexão falhou. Confira o endereço, a porta e o usuário e a senha.";
         setConnectingHost({ label, error: msg, retry: () => void connectToHost(host), cancel: null });
       }
     },
@@ -311,7 +311,7 @@ export function HostsDashboard() {
         if (cancelled) return;
         const msg = err && typeof err === "object" && "message" in err
           ? String((err as { message: string }).message)
-          : "Connection failed.";
+          : "A conexão falhou.";
         setConnectingHost({ label, error: msg, retry: () => void handleRecentConnect(conn), cancel: null });
       }
     },
@@ -382,7 +382,7 @@ export function HostsDashboard() {
         if (cancelled) return;
         const msg = err && typeof err === "object" && "message" in err
           ? String((err as { message: string }).message)
-          : "Connection failed.";
+          : "A conexão falhou.";
         setConnectingHost({ label, error: msg, retry: () => void exploreHost(host), cancel: null });
       }
     },
@@ -403,7 +403,7 @@ export function HostsDashboard() {
         // "Delete Group & Hosts" cascade elsewhere in the session), and
         // propagates any other DB error. Unhandled, the dialog just closed and
         // the card stayed, with an unhandled rejection from the `void` call.
-        toast.error(`Couldn't delete "${label}".`);
+        toast.error(`Não foi possível excluir "${label}".`);
         // Reload so a card for an already-deleted row doesn't linger.
         // loadHosts reports its own failure through the store's error state.
         await loadHosts();
@@ -426,13 +426,13 @@ export function HostsDashboard() {
         // which is indistinguishable from a wrong password.
         if (outcome.credential_error) {
           toast.error(
-            `Duplicated "${label}", but its saved credential didn't copy — re-enter it on the copy.`,
+            `"${label}" foi duplicado, mas a senha salva não foi copiada. Digite a senha de novo na cópia.`,
           );
         }
       } catch {
         // The store throws when the source is gone or the backend write fails;
         // unhandled, the click just did nothing visible.
-        toast.error(`Couldn't duplicate "${label}".`);
+        toast.error(`Não foi possível duplicar "${label}".`);
       }
     },
     [duplicateHost],
@@ -472,7 +472,7 @@ export function HostsDashboard() {
       );
 
       void reorderHosts(newFullOrder).catch(() => {
-        toast.error("Couldn't save the new host order — reverted.");
+        toast.error("Não foi possível salvar a nova ordem dos servidores. A ordem anterior voltou.");
       });
     },
     [filteredHosts, hosts, reorderHosts],
@@ -492,7 +492,7 @@ export function HostsDashboard() {
 
       const newOrder = arrayMove(groups, oldIndex, newIndex);
       void reorderGroups(newOrder).catch(() => {
-        toast.error("Couldn't save the new group order — reverted.");
+        toast.error("Não foi possível salvar a nova ordem dos grupos. A ordem anterior voltou.");
       });
     },
     [groups, reorderGroups],
@@ -519,7 +519,7 @@ export function HostsDashboard() {
       );
 
       void reorderS3Connections(newFullOrder).catch(() => {
-        toast.error("Couldn't save the new connection order — reverted.");
+        toast.error("Não foi possível salvar a nova ordem das conexões. A ordem anterior voltou.");
       });
     },
     [filteredS3, s3Connections, reorderS3Connections],
@@ -566,7 +566,7 @@ export function HostsDashboard() {
       } catch {
         // Without this the dialog just closed: no reload, nothing shown, and an
         // unhandled rejection from the `void handleGroupDeleteConfirm(...)` call.
-        toast.error(`Couldn't delete "${group.name}".`);
+        toast.error(`Não foi possível excluir "${group.name}".`);
       } finally {
         setDeletingGroup(null);
       }
@@ -599,41 +599,103 @@ export function HostsDashboard() {
 
   return (
     <>
-      <div className="flex flex-col h-full overflow-y-scroll bg-bg-base">
-        <div className="max-w-4xl w-full mx-auto px-8 py-8 flex flex-col gap-8">
+      <div className="flex flex-col h-full overflow-y-scroll">
+        <div className="max-w-6xl w-full mx-auto px-8 pt-6 pb-10 flex flex-col gap-7">
 
           {/* ── Page title ── */}
           <div>
-            <h1 className="text-[length:var(--text-lg)] font-semibold text-text-primary">Hosts</h1>
-            <p className="text-[length:var(--text-xs)] text-text-muted mt-1">Manage your saved servers, organize them into groups, and connect with one click</p>
+            <h1 className="text-[28px] font-bold tracking-tight text-text-primary">Servidores</h1>
+            <p className="text-[length:var(--text-sm)] text-text-secondary mt-1">Seus servidores salvos, por grupo. Um clique abre o terminal ou os arquivos.</p>
           </div>
 
-          {/* ── Search bar ── */}
-          <div className="relative">
-            <Search
-              size={16}
-              strokeWidth={2}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-              aria-hidden="true"
-            />
-            <input
-              ref={searchInputRef}
-              data-testid="host-search"
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") setQuery("");
-              }}
-              placeholder="Search hosts..."
-              aria-label="Search hosts"
+          {/* ── Search + actions ── */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative flex-1 min-w-[260px]">
+              <Search
+                size={18}
+                strokeWidth={1.75}
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+                aria-hidden="true"
+              />
+              <input
+                ref={searchInputRef}
+                data-testid="host-search"
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setQuery("");
+                }}
+                placeholder="Buscar servidor, grupo ou endereço"
+                aria-label="Buscar servidores"
+                className={[
+                  "w-full h-12 pl-12 pr-5 rounded-full text-[length:var(--text-sm)]",
+                  "bg-white/[0.07] border border-transparent text-text-primary placeholder:text-text-muted",
+                  "outline-none transition-[border-color,box-shadow] duration-[var(--duration-fast)]",
+                  "focus:border-border-focus focus:ring-2 focus:ring-ring",
+                ].join(" ")}
+              />
+            </div>
+
+            <button
+              data-testid="new-host-button"
+              onClick={() => setEditingHostId("__new__")}
               className={[
-                "w-full pl-10 pr-4 py-2.5 rounded-xl text-[length:var(--text-sm)]",
-                "bg-bg-surface border border-border text-text-primary placeholder:text-text-muted",
-                "outline-none transition-[border-color,box-shadow] duration-[var(--duration-fast)]",
-                "focus:border-border-focus focus:ring-2 focus:ring-ring",
+                "flex items-center gap-2 h-12 px-6 rounded-full text-[length:var(--text-sm)] font-bold shrink-0",
+                "bg-accent text-text-inverse hover:bg-accent-hover",
+                "transition-colors duration-[var(--duration-fast)]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               ].join(" ")}
-            />
+              title="Novo servidor (Ctrl+T)"
+            >
+              <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
+              Novo servidor
+            </button>
+
+            <button
+              data-testid="new-group-button"
+              onClick={() => setGroupModalOpen(true)}
+              className={[
+                "flex items-center gap-2 h-11 px-4 rounded-full text-[length:var(--text-sm)] font-bold shrink-0",
+                "bg-white/[0.07] text-text-primary hover:bg-white/[0.12]",
+                "transition-colors duration-[var(--duration-fast)]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              ].join(" ")}
+              title="Novo grupo"
+            >
+              <FolderPlus size={17} strokeWidth={1.75} aria-hidden="true" />
+              Novo grupo
+            </button>
+
+            <button
+              data-testid="new-s3-button"
+              onClick={() => setS3DialogOpen(true)}
+              className={[
+                "flex items-center gap-2 h-11 px-4 rounded-full text-[length:var(--text-sm)] font-bold shrink-0",
+                "bg-white/[0.07] text-text-primary hover:bg-white/[0.12]",
+                "transition-colors duration-[var(--duration-fast)]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              ].join(" ")}
+              title="Nova conexão S3"
+            >
+              <Cloud size={17} strokeWidth={1.75} aria-hidden="true" />
+              S3
+            </button>
+
+            <button
+              data-testid="import-ssh-config-button"
+              onClick={() => setImportModalOpen(true)}
+              className={[
+                "flex items-center gap-2 h-11 px-4 rounded-full text-[length:var(--text-sm)] font-bold shrink-0",
+                "bg-white/[0.07] text-text-primary hover:bg-white/[0.12]",
+                "transition-colors duration-[var(--duration-fast)]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              ].join(" ")}
+              title="Importar do arquivo de configuração SSH"
+            >
+              <Import size={17} strokeWidth={1.75} aria-hidden="true" />
+              Importar SSH
+            </button>
           </div>
 
           {/* ── Recent connections ── */}
@@ -644,81 +706,14 @@ export function HostsDashboard() {
             />
           )}
 
-          {/* ── Action buttons ── */}
-          <div className="flex gap-2">
-            <button
-              data-testid="new-host-button"
-              onClick={() => setEditingHostId("__new__")}
-              className={[
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium uppercase tracking-wide",
-                "bg-bg-surface border border-border text-text-secondary",
-                "hover:border-border-focus hover:text-text-primary hover:bg-bg-overlay",
-                "transition-all duration-[var(--duration-fast)]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              ].join(" ")}
-              title="New Server (Cmd+T)"
-            >
-              <Plus size={14} strokeWidth={2.2} aria-hidden="true" />
-              New Server
-            </button>
-
-            <button
-              data-testid="new-s3-button"
-              onClick={() => setS3DialogOpen(true)}
-              className={[
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium uppercase tracking-wide",
-                "bg-bg-surface border border-border text-text-secondary",
-                "hover:border-border-focus hover:text-text-primary hover:bg-bg-overlay",
-                "transition-all duration-[var(--duration-fast)]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              ].join(" ")}
-              title="New S3 Connection"
-            >
-              <Cloud size={14} strokeWidth={2} aria-hidden="true" />
-              New S3
-            </button>
-
-            <button
-              data-testid="new-group-button"
-              onClick={() => setGroupModalOpen(true)}
-              className={[
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium uppercase tracking-wide",
-                "bg-bg-surface border border-border text-text-secondary",
-                "hover:border-border-focus hover:text-text-primary hover:bg-bg-overlay",
-                "transition-all duration-[var(--duration-fast)]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              ].join(" ")}
-              title="New Group"
-            >
-              <FolderPlus size={14} strokeWidth={2} aria-hidden="true" />
-              New Group
-            </button>
-
-            <button
-              data-testid="import-ssh-config-button"
-              onClick={() => setImportModalOpen(true)}
-              className={[
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium uppercase tracking-wide",
-                "bg-bg-surface border border-border text-text-secondary",
-                "hover:border-border-focus hover:text-text-primary hover:bg-bg-overlay",
-                "transition-all duration-[var(--duration-fast)]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              ].join(" ")}
-              title="Import from SSH Config"
-            >
-              <Import size={14} strokeWidth={2} aria-hidden="true" />
-              Import
-            </button>
-          </div>
-
           {/* ── Groups section ── */}
           {groups.length > 0 && (
             <section aria-labelledby="groups-heading">
               <h2
                 id="groups-heading"
-                className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted mb-3"
+                className="text-[length:var(--text-xs)] font-semibold uppercase tracking-[0.08em] text-text-muted mb-3"
               >
-                Groups
+                Grupos
               </h2>
               <DndContext
                 sensors={sensors}
@@ -729,7 +724,7 @@ export function HostsDashboard() {
                   items={groups.map((g) => g.id)}
                   strategy={rectSortingStrategy}
                 >
-                  <div className="grid grid-cols-3 gap-2.5">
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
                     {groups.map((group) => (
                       <SortableCard key={group.id} id={group.id}>
                         <GroupCard
@@ -759,18 +754,20 @@ export function HostsDashboard() {
                     "hover:text-text-secondary transition-colors duration-[var(--duration-fast)]",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded",
                   ].join(" ")}
-                  aria-label="Back to all hosts"
+                  aria-label="Voltar para todos os servidores"
                 >
                   <ArrowLeft size={13} strokeWidth={2.2} aria-hidden="true" />
-                  All Hosts
+                  Todos
                 </button>
               )}
 
               <h2
                 id="hosts-heading"
-                className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted"
+                className="text-[length:var(--text-xs)] font-semibold uppercase tracking-[0.08em] text-text-muted"
               >
-                {activeGroup ? activeGroup.name : "Hosts"}
+                {activeGroup ? activeGroup.name : "Servidores"}
+                {" · "}
+                {filteredHosts.length}
               </h2>
             </div>
 
@@ -785,7 +782,7 @@ export function HostsDashboard() {
                   items={filteredHosts.map((h) => h.id)}
                   strategy={rectSortingStrategy}
                 >
-                  <div className="grid grid-cols-3 gap-2.5">
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
                     {filteredHosts.map((host) => (
                       <SortableCard key={host.id} id={host.id}>
                         <HostCard
@@ -815,9 +812,9 @@ export function HostsDashboard() {
             <section aria-labelledby="s3-heading">
               <h2
                 id="s3-heading"
-                className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted mb-3"
+                className="text-[length:var(--text-xs)] font-semibold uppercase tracking-[0.08em] text-text-muted mb-3"
               >
-                Cloud Storage
+                Armazenamento em nuvem
               </h2>
               <DndContext
                 sensors={sensors}
@@ -828,7 +825,7 @@ export function HostsDashboard() {
                   items={filteredS3.map((c) => c.id)}
                   strategy={rectSortingStrategy}
                 >
-                  <div className="grid grid-cols-3 gap-2.5">
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
                     {filteredS3.map((conn) => (
                       <SortableCard key={conn.id} id={conn.id}>
                         <S3Card
@@ -908,7 +905,7 @@ function EmptyHostsState({ query, hasHosts, groupFiltered }: EmptyHostsStateProp
   if (query.trim()) {
     return (
       <p className="text-[length:var(--text-sm)] text-text-muted py-8 text-center">
-        No hosts match &ldquo;{query}&rdquo;
+        Nenhum servidor encontrado para &ldquo;{query}&rdquo;
       </p>
     );
   }
@@ -916,7 +913,7 @@ function EmptyHostsState({ query, hasHosts, groupFiltered }: EmptyHostsStateProp
   if (groupFiltered) {
     return (
       <p className="text-[length:var(--text-sm)] text-text-muted py-8 text-center">
-        No hosts in this group yet.
+        Nenhum servidor neste grupo ainda.
       </p>
     );
   }
@@ -924,7 +921,7 @@ function EmptyHostsState({ query, hasHosts, groupFiltered }: EmptyHostsStateProp
   if (!hasHosts) {
     return (
       <p className="text-[length:var(--text-sm)] text-text-muted py-8 text-center">
-        No saved hosts yet. Connect to a server to save it here.
+        Nenhum servidor salvo ainda. Clique em Novo servidor para começar.
       </p>
     );
   }

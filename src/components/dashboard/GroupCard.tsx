@@ -23,7 +23,7 @@ export function GroupCard({ group, hostCount, isSelected, onSelect, onDelete }: 
 
   const contextItems = [
     {
-      label: "Delete Group",
+      label: "Excluir grupo",
       icon: Trash2,
       danger: true,
       onClick: () => onDelete(group.id),
@@ -72,7 +72,7 @@ export function GroupCard({ group, hostCount, isSelected, onSelect, onDelete }: 
             {group.name}
           </p>
           <p className="text-[length:var(--text-xs)] text-text-muted mt-0.5">
-            {hostCount === 1 ? "1 host" : `${hostCount} hosts`}
+            {hostCount === 1 ? "1 servidor" : `${hostCount} servidores`}
           </p>
         </div>
       </button>

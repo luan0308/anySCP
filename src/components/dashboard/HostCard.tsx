@@ -8,6 +8,7 @@ import { ContextMenu } from "../shared/ContextMenu";
 import { ConfirmDangerDialog } from "../shared/ConfirmDangerDialog";
 import { useHealthStore, IDLE_HEALTH, type HealthStatus } from "../../stores/health-store";
 import { useHostsStore } from "../../stores/hosts-store";
+import { ProtocolBadge, EnvBadge } from "../brand";
 
 // Single source of truth for status → colour, shared by the button and the label.
 function statusColor(status: HealthStatus): string {
@@ -26,15 +27,14 @@ interface HostCardProps {
   onDuplicate: (host: SavedHost) => void;
 }
 
+// talktoall palette: green, violet, amber, coral, plus two softer tints.
 export const HOST_COLORS = [
-  "#ef4444",
-  "#f97316",
-  "#eab308",
-  "#22c55e",
-  "#06b6d4",
-  "#3b82f6",
-  "#8b5cf6",
-  "#ec4899",
+  "#72FAA6",
+  "#A98BFF",
+  "#FFB648",
+  "#FF7A7A",
+  "#7CC8FF",
+  "#F28BD8",
 ];
 
 export function getHostColor(name: string): string {
@@ -43,28 +43,6 @@ export function getHostColor(name: string): string {
     hash = (hash * 31 + name.charCodeAt(i)) | 0;
   }
   return HOST_COLORS[Math.abs(hash) % HOST_COLORS.length];
-}
-
-// ─── Environment badge ────────────────────────────────────────────────────────
-
-type EnvironmentValue = "production" | "staging" | "dev" | "testing";
-
-const ENV_BADGE_CLASSES: Record<EnvironmentValue, string> = {
-  production: "bg-[oklch(0.650_0.200_25/0.15)] text-[oklch(0.650_0.200_25)]",
-  staging:    "bg-[oklch(0.750_0.160_80/0.15)] text-[oklch(0.750_0.160_80)]",
-  dev:        "bg-[oklch(0.720_0.180_155/0.15)] text-[oklch(0.720_0.180_155)]",
-  testing:    "bg-[oklch(0.700_0.150_250/0.15)] text-[oklch(0.700_0.150_250)]",
-};
-
-const ENV_LABELS: Record<EnvironmentValue, string> = {
-  production: "PROD",
-  staging:    "STAGE",
-  dev:        "DEV",
-  testing:    "TEST",
-};
-
-function isEnvironmentValue(val: string): val is EnvironmentValue {
-  return val === "production" || val === "staging" || val === "dev" || val === "testing";
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -89,25 +67,15 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
   );
   const jumpLabel = jumpHost ? jumpHost.label || jumpHost.host : null;
 
-  // Build subtitle segments
+  // Subtitle: who and where, e.g. "deploy · jardimdacolina.com.br · :22".
   const ftp = isFtpHost(host);
   const proto = protocolLabel(host);
-  const subtitleParts: string[] = [`${proto}, ${host.username}`];
-  if (host.os_type) {
-    const osLabels: Record<string, string> = {
-      linux: "Linux",
-      macos: "macOS",
-      windows: "Windows",
-      freebsd: "FreeBSD",
-    };
-    subtitleParts.push(osLabels[host.os_type] ?? host.os_type);
-  }
+  const defaultPort = ftp ? (host.ftp_security === "implicit" ? 990 : 21) : 22;
+  const subtitleParts: string[] = [host.username, host.host];
+  if (host.port && host.port !== defaultPort) subtitleParts.push(`:${host.port}`);
   const lastSeen = host.last_connected_at ? relativeTime(host.last_connected_at) : null;
   if (lastSeen) subtitleParts.push(lastSeen);
-
-  const subtitle = subtitleParts.join(" · ");
-
-  const env = host.environment && isEnvironmentValue(host.environment) ? host.environment : null;
+  const subtitle = subtitleParts.filter(Boolean).join(" · ");
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -117,7 +85,7 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
 
   const contextItems = [
     {
-      label: "Ping",
+      label: "Testar conexão",
       icon: Activity,
       onClick: () => void checkHealth(host.id),
     },
@@ -131,22 +99,22 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
           },
         ]),
     {
-      label: "Explorer",
+      label: "Arquivos",
       icon: FolderOpen,
       onClick: () => onExplore(host),
     },
     {
-      label: "Edit",
+      label: "Editar",
       icon: Pencil,
       onClick: () => onEdit(host.id),
     },
     {
-      label: "Duplicate",
+      label: "Duplicar",
       icon: Copy,
       onClick: () => onDuplicate(host),
     },
     {
-      label: "Delete",
+      label: "Excluir",
       icon: Trash2,
       danger: true,
       onClick: () => setConfirmDelete(true),
@@ -162,13 +130,13 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
 
   const healthLabel = (() => {
     if (health.status === "idle") return null;
-    if (health.status === "checking") return "Pinging...";
-    const latency = health.latencyMs !== null ? ` · ${health.latencyMs}ms` : "";
-    if (health.status === "reachable") return `${proto} reachable${latency}`;
-    if (health.status === "dnsFailed") return "DNS failed";
-    if (health.status === "portClosed") return "Port unreachable";
-    if (health.status === "sshFailed") return `${proto} failed`;
-    return "Ping failed";
+    if (health.status === "checking") return "Testando…";
+    const latency = health.latencyMs !== null ? ` · ${health.latencyMs} ms` : "";
+    if (health.status === "reachable") return `${proto} respondendo${latency}`;
+    if (health.status === "dnsFailed") return "Endereço não encontrado (DNS)";
+    if (health.status === "portClosed") return "Porta inacessível";
+    if (health.status === "sshFailed") return `${proto} falhou`;
+    return "Sem resposta";
   })();
 
   return (
@@ -182,13 +150,13 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
         onClick={() => onConnect(host)}
         onKeyDown={handleKeyDown}
         onContextMenu={handleContextMenu}
-        title={ftp ? `Open ${displayName} in the explorer` : `Connect to ${displayName}`}
+        title={ftp ? `Abrir os arquivos de ${displayName}` : `Conectar em ${displayName}`}
         className={[
           // grab/grabbing communicates the card is draggable; the click-to-connect
           // action still fires for a plain click (drag needs a 5px move first).
-          "group relative isolate flex flex-col gap-2.5 p-3.5 rounded-xl text-left w-full h-full cursor-grab active:cursor-grabbing overflow-hidden",
-          "bg-bg-surface border border-border",
-          "hover:border-border-focus hover:bg-bg-overlay",
+          "group relative isolate flex flex-col gap-3 p-5 rounded-[17px] text-left w-full h-full cursor-grab active:cursor-grabbing overflow-hidden",
+          "bg-white/[0.07] border border-transparent",
+          "hover:border-accent/60 hover:bg-white/[0.09]",
           "transition-[background-color,border-color] duration-[var(--duration-fast)]",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         ].join(" ")}
@@ -198,7 +166,7 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
         <div
           className="absolute inset-0 pointer-events-none -z-10 opacity-70 group-hover:opacity-100 transition-opacity duration-[var(--duration-fast)]"
           style={{
-            background: `radial-gradient(circle at top left, ${avatarColor}33, transparent 60%)`,
+            background: `radial-gradient(circle at top left, ${avatarColor}1f, transparent 55%)`,
           }}
           aria-hidden="true"
         />
@@ -207,9 +175,9 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
         <CardActionStrip>
           <CardActionButton
             icon={Activity}
-            label="Ping"
+            label="Testar"
             onClick={() => void checkHealth(host.id)}
-            ariaLabel={`Ping ${displayName}`}
+            ariaLabel={`Testar conexão com ${displayName}`}
             detail={health.message ?? undefined}
             testId={`host-card-${host.id}-health`}
             disabled={health.status === "checking"}
@@ -221,22 +189,22 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
               icon={TerminalSquare}
               label="Terminal"
               onClick={() => onConnect(host)}
-              ariaLabel={`Open terminal for ${displayName}`}
+              ariaLabel={`Abrir terminal de ${displayName}`}
               testId={`host-card-${host.id}-terminal`}
             />
           )}
           <CardActionButton
             icon={FolderOpen}
-            label="Explorer"
+            label="Arquivos"
             onClick={() => onExplore(host)}
-            ariaLabel={`Open explorer for ${displayName}`}
+            ariaLabel={`Abrir arquivos de ${displayName}`}
             testId={`host-card-${host.id}-explorer`}
           />
         </CardActionStrip>
 
         {/* Avatar circle */}
         <div
-          className="flex items-center justify-center w-9 h-9 rounded-full shrink-0 font-semibold text-[length:var(--text-sm)] select-none"
+          className="flex items-center justify-center w-10 h-10 rounded-full shrink-0 font-bold text-[length:var(--text-base)] select-none"
           style={{
             backgroundColor: `${avatarColor}25`,
             color: avatarColor,
@@ -249,29 +217,21 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
 
         {/* Host info */}
         <div className="min-w-0">
-          <p className="text-[length:var(--text-sm)] font-medium text-text-primary truncate leading-tight pr-24">
+          <p className="text-[length:var(--text-base)] font-bold text-text-primary truncate leading-tight">
             {displayName}
           </p>
-          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-            <p className="text-[length:var(--text-xs)] text-text-muted font-mono truncate">
-              {subtitle}
-            </p>
-            {env && (
-              <span
-                className={[
-                  "inline-flex items-center px-1 py-px rounded text-[11px] font-semibold tracking-wide leading-none shrink-0",
-                  ENV_BADGE_CLASSES[env],
-                ].join(" ")}
-              >
-                {ENV_LABELS[env]}
-              </span>
-            )}
+          <p className="mt-1.5 text-[13px] text-text-secondary truncate" title={subtitle}>
+            {subtitle}
+          </p>
+          <div className="flex items-center gap-1.5 mt-2.5 flex-wrap">
+            <ProtocolBadge label={proto} />
+            <EnvBadge env={host.environment} />
           </div>
           {jumpLabel && (
             <div
               data-testid={`host-card-${host.id}-tunnel`}
               className="flex items-center gap-1 mt-0.5 text-[length:var(--text-xs)] text-text-muted truncate"
-              title={`Tunnels through ${jumpLabel}`}
+              title={`Passa por ${jumpLabel}`}
             >
               <Waypoints size={11} strokeWidth={2} aria-hidden="true" className="shrink-0" />
               <span className="truncate">via {jumpLabel}</span>
@@ -306,8 +266,8 @@ export function HostCard({ host, onConnect, onExplore, onEdit, onDelete, onDupli
 
       <ConfirmDangerDialog
         open={confirmDelete}
-        title="Delete this host?"
-        message="This host will be permanently removed."
+        title="Excluir este servidor?"
+        message="O servidor e a senha salva serão removidos de vez."
         onCancel={() => setConfirmDelete(false)}
         onConfirm={() => {
           setConfirmDelete(false);

@@ -26,7 +26,7 @@ describe("GroupDeleteDialog", () => {
     render(<GroupDeleteDialog group={group} hostCount={2} onConfirm={onConfirm} onCancel={vi.fn()} />);
 
     fireEvent.click(screen.getByRole("checkbox"));
-    fireEvent.click(screen.getByRole("button", { name: /delete group & hosts/i }));
+    fireEvent.click(screen.getByRole("button", { name: /excluir grupo e servidores/i }));
 
     expect(onConfirm).toHaveBeenCalledWith(true);
   });
@@ -35,7 +35,7 @@ describe("GroupDeleteDialog", () => {
     const onConfirm = vi.fn();
     render(<GroupDeleteDialog group={group} hostCount={2} onConfirm={onConfirm} onCancel={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /^delete group$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^excluir grupo$/i }));
 
     expect(onConfirm).toHaveBeenCalledWith(false);
   });

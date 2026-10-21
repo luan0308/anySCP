@@ -81,9 +81,9 @@ async function deleteGroupWithHosts({ selectFirst = false } = {}) {
   // move to activate, so a plain click just selects.
   if (selectFirst) fireEvent.click(card);
   fireEvent.contextMenu(card);
-  fireEvent.click(screen.getByText("Delete Group"));
+  fireEvent.click(screen.getByText("Excluir grupo"));
   fireEvent.click(await screen.findByRole("checkbox"));
-  fireEvent.click(screen.getByRole("button", { name: /delete group & hosts/i }));
+  fireEvent.click(screen.getByRole("button", { name: /excluir grupo e servidores/i }));
 }
 
 const toastMessages = () => useToastStore.getState().toasts.map((t) => t.message);
@@ -115,7 +115,7 @@ describe("HostsDashboard group delete", () => {
 
     await deleteGroupWithHosts();
 
-    await waitFor(() => expect(toastMessages()).toEqual(['Couldn\'t delete "prod".']));
+    await waitFor(() => expect(toastMessages()).toEqual(['Não foi possível excluir "prod".']));
   });
 
   it("keeps the group filter when the cascade fails", async () => {
@@ -123,7 +123,7 @@ describe("HostsDashboard group delete", () => {
 
     await deleteGroupWithHosts({ selectFirst: true });
 
-    await waitFor(() => expect(toastMessages()).toEqual(['Couldn\'t delete "prod".']));
+    await waitFor(() => expect(toastMessages()).toEqual(['Não foi possível excluir "prod".']));
     // Clearing the filter in `finally` reset the sidebar to all hosts even
     // though "prod" was still there — the delete the user was told had failed.
     expect(screen.getByTestId("group-card-g1")).toHaveAttribute("aria-pressed", "true");
