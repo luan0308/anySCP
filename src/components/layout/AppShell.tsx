@@ -44,7 +44,7 @@ export function AppShell() {
   // Auto-open hosts tab if active tab gets removed
   useEffect(() => {
     if (!activeTabId || !allTabs.has(activeTabId)) {
-      useTabStore.getState().openPageTab("hosts", "Hosts");
+      useTabStore.getState().openPageTab("hosts", "Servidores");
     }
   }, [activeTabId, allTabs]);
 
@@ -344,7 +344,8 @@ export function AppShell() {
     if (!settingsLoaded || didUpdateCheck.current) return;
     didUpdateCheck.current = true;
     void useUpdaterStore.getState().loadAppVersion();
-    void useUpdaterStore.getState().checkOnStartup();
+    // No auto-update feed for this build: new versions come from the GitHub
+    // releases page (Settings › Sobre).
   }, [settingsLoaded]);
 
   useLayoutEffect(() => {
@@ -407,7 +408,7 @@ export function AppShell() {
   const activePageType = activeTab?.type === "page" ? activeTab.page : null;
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-bg-base no-select p-2 gap-2">
+    <div className="flex h-screen w-screen overflow-hidden bg-transparent no-select p-2 gap-2">
       {/* Sidebar rail */}
       <Sidebar />
 

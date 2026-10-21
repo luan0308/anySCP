@@ -75,7 +75,7 @@ describe("S3Browser — paged listings (issue #137)", () => {
     render(<S3Browser sessionId={SESSION_ID} />);
 
     expect(await screen.findByTestId("s3-load-more")).toBeInTheDocument();
-    expect(screen.getByTestId("s3-load-more-count")).toHaveTextContent("Showing 2 items");
+    expect(screen.getByTestId("s3-load-more-count")).toHaveTextContent("Mostrando 2 itens");
     expect(listCalls()).toEqual([
       { s3SessionId: SESSION_ID, prefix: "", continuationToken: null },
     ]);

@@ -16,8 +16,8 @@ export function ConfirmDangerDialog({
   open,
   title,
   message,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel = "Confirmar",
+  cancelLabel = "Cancelar",
   busy = false,
   onConfirm,
   onCancel,
@@ -38,7 +38,7 @@ export function ConfirmDangerDialog({
             {cancelLabel}
           </button>
           <button type="button" onClick={onConfirm} disabled={busy} className={BTN_DANGER}>
-            {busy ? "Deleting…" : confirmLabel}
+            {busy ? "Excluindo…" : confirmLabel}
           </button>
         </>
       }

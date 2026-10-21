@@ -7,7 +7,12 @@ use tracing::instrument;
 
 /// Keychain service name used as the top-level namespace for every entry.
 /// All credentials are keyed as `(SERVICE_NAME, host_id)`.
-const SERVICE_NAME: &str = "com.anyscp.credentials";
+const SERVICE_NAME: &str = "br.com.talktoall.files";
+
+/// Namespace used before the app became Talktoall Files. Secrets saved there
+/// are still read (and copied to [`SERVICE_NAME`] on first use), so moving
+/// over from anySCP does not ask for every password again.
+const LEGACY_SERVICE_NAME: &str = "com.anyscp.credentials";
 
 // ---------------------------------------------------------------------------
 // Error type
@@ -94,13 +99,18 @@ pub fn save_credential(host_id: &str, credential: &StoredCredential) -> Result<(
 /// Returns `VaultError::NotFound` when no entry exists for `host_id`.
 #[instrument(fields(host_id = %host_id))]
 pub fn get_credential(host_id: &str) -> Result<StoredCredential, VaultError> {
-    let entry = keyring::Entry::new(SERVICE_NAME, host_id)
-        .map_err(|e| VaultError::Keychain(e.to_string()))?;
-
-    let json = entry.get_password().map_err(|e| match e {
-        keyring::Error::NoEntry => VaultError::NotFound(host_id.to_string()),
-        other => VaultError::Keychain(other.to_string()),
-    })?;
+    let json = match read_entry(SERVICE_NAME, host_id)? {
+        Some(json) => json,
+        None => {
+            let json = read_entry(LEGACY_SERVICE_NAME, host_id)?
+                .ok_or_else(|| VaultError::NotFound(host_id.to_string()))?;
+            // Best-effort copy into the current namespace.
+            if let Ok(entry) = keyring::Entry::new(SERVICE_NAME, host_id) {
+                let _ = entry.set_password(&json);
+            }
+            json
+        }
+    };
 
     serde_json::from_str(&json).map_err(|e| VaultError::InvalidData(e.to_string()))
 }
@@ -111,25 +121,38 @@ pub fn get_credential(host_id: &str) -> Result<StoredCredential, VaultError> {
 /// `delete_host` and `vault_delete_credential` are called together.
 #[instrument(fields(host_id = %host_id))]
 pub fn delete_credential(host_id: &str) -> Result<(), VaultError> {
-    let entry = keyring::Entry::new(SERVICE_NAME, host_id)
-        .map_err(|e| VaultError::Keychain(e.to_string()))?;
-
-    match entry.delete_credential() {
-        Ok(()) => {
-            tracing::debug!(host_id = %host_id, "credential deleted from keychain");
-            Ok(())
+    // The legacy copy goes too, or the secret would come back on the next read.
+    for service in [SERVICE_NAME, LEGACY_SERVICE_NAME] {
+        let entry = keyring::Entry::new(service, host_id)
+            .map_err(|e| VaultError::Keychain(e.to_string()))?;
+        match entry.delete_credential() {
+            Ok(()) | Err(keyring::Error::NoEntry) => {}
+            Err(e) => return Err(VaultError::Keychain(e.to_string())),
         }
-        Err(keyring::Error::NoEntry) => Ok(()), // already absent — that is fine
-        Err(e) => Err(VaultError::Keychain(e.to_string())),
     }
+    tracing::debug!(host_id = %host_id, "credential deleted from keychain");
+    Ok(())
 }
 
 /// Return `true` when a credential exists for `host_id`, without retrieving
 /// the secret value.
 pub fn has_credential(host_id: &str) -> bool {
-    keyring::Entry::new(SERVICE_NAME, host_id)
-        .and_then(|e| e.get_password())
-        .is_ok()
+    [SERVICE_NAME, LEGACY_SERVICE_NAME].iter().any(|service| {
+        keyring::Entry::new(service, host_id)
+            .and_then(|e| e.get_password())
+            .is_ok()
+    })
+}
+
+/// Read one keychain entry; `Ok(None)` when it does not exist.
+fn read_entry(service: &str, host_id: &str) -> Result<Option<String>, VaultError> {
+    let entry =
+        keyring::Entry::new(service, host_id).map_err(|e| VaultError::Keychain(e.to_string()))?;
+    match entry.get_password() {
+        Ok(json) => Ok(Some(json)),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(e) => Err(VaultError::Keychain(e.to_string())),
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -412,6 +435,33 @@ mod tests {
             StoredCredential::Password { password } => assert_eq!(password, "new"),
             other => panic!("unexpected variant: {other:?}"),
         }
+    }
+
+    #[test]
+    fn legacy_anyscp_secret_is_read_and_migrated() {
+        init_mock_keystore();
+        let id = unique_id("legacy");
+        let _guard = KeychainGuard(id.clone());
+        let json = serde_json::to_string(&StoredCredential::Password {
+            password: "old".to_string(),
+        })
+        .unwrap();
+        keyring::Entry::new(LEGACY_SERVICE_NAME, &id)
+            .unwrap()
+            .set_password(&json)
+            .unwrap();
+
+        assert!(has_credential(&id));
+        match get_credential(&id).expect("get") {
+            StoredCredential::Password { password } => assert_eq!(password, "old"),
+            other => panic!("unexpected variant: {other:?}"),
+        }
+        // Copied into the current namespace on first read.
+        assert_eq!(read_entry(SERVICE_NAME, &id).unwrap(), Some(json));
+
+        delete_credential(&id).unwrap();
+        assert!(!has_credential(&id));
+        assert_eq!(read_entry(LEGACY_SERVICE_NAME, &id).unwrap(), None);
     }
 
     #[test]

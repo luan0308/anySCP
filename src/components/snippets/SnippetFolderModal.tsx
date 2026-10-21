@@ -49,7 +49,7 @@ export function SnippetFolderModal({ open, onClose, onSave }: SnippetFolderModal
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) { setError("Folder name is required"); return; }
+    if (!name.trim()) { setError("Informe o nome da pasta"); return; }
     setSaving(true);
     setError(null);
     try {
@@ -58,7 +58,7 @@ export function SnippetFolderModal({ open, onClose, onSave }: SnippetFolderModal
       setError(
         err && typeof err === "object" && "message" in err
           ? String((err as { message: string }).message)
-          : "Failed to save folder",
+          : "Não foi possível salvar a pasta",
       );
       setSaving(false);
     }
@@ -77,14 +77,14 @@ export function SnippetFolderModal({ open, onClose, onSave }: SnippetFolderModal
     <ModalShell
       open={open}
       onClose={onClose}
-      title="New Folder"
+      title="Nova pasta"
       icon={Folder}
       maxWidth="sm"
       busy={saving}
       footer={
         <>
           <button type="button" onClick={onClose} disabled={saving} className={BTN_GHOST}>
-            Cancel
+            Cancelar
           </button>
           <button
             form="snippet-folder-form"
@@ -92,7 +92,7 @@ export function SnippetFolderModal({ open, onClose, onSave }: SnippetFolderModal
             disabled={saving || !name.trim()}
             className={BTN_PRIMARY}
           >
-            {saving ? "Creating…" : "Create Folder"}
+            {saving ? "Criando…" : "Criar pasta"}
           </button>
         </>
       }
@@ -100,21 +100,21 @@ export function SnippetFolderModal({ open, onClose, onSave }: SnippetFolderModal
       <form id="snippet-folder-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <label className={labelClass}>
-            Name <span className="text-status-error">*</span>
+            Nome <span className="text-status-error">*</span>
           </label>
           <input
             ref={nameRef}
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g., Web Servers, Docker, Database"
+            placeholder="Ex.: Servidores web, Docker, Banco de dados"
             disabled={saving}
             className={inputClass}
           />
         </div>
 
         <div>
-          <span className={labelClass}>Color</span>
+          <span className={labelClass}>Cor</span>
           <div className="flex items-center gap-2 flex-wrap">
             {FOLDER_COLORS.map((c) => (
               <button
@@ -122,7 +122,7 @@ export function SnippetFolderModal({ open, onClose, onSave }: SnippetFolderModal
                 type="button"
                 onClick={() => setColor(c)}
                 disabled={saving}
-                aria-label={`Color ${c}`}
+                aria-label={`Cor ${c}`}
                 aria-pressed={color === c}
                 className={[
                   "w-7 h-7 rounded-full border-2",

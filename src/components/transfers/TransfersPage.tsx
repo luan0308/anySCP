@@ -6,19 +6,19 @@ export function TransfersPage() {
     useTransfers();
 
   const summaryParts: string[] = [];
-  if (activeCount > 0) summaryParts.push(`${activeCount} active`);
-  if (queuedCount > 0) summaryParts.push(`${queuedCount} queued`);
-  if (finishedCount > 0) summaryParts.push(`${finishedCount} done`);
+  if (activeCount > 0) summaryParts.push(`${activeCount} ${activeCount === 1 ? "ativa" : "ativas"}`);
+  if (queuedCount > 0) summaryParts.push(`${queuedCount} na fila`);
+  if (finishedCount > 0) summaryParts.push(`${finishedCount} ${finishedCount === 1 ? "concluída" : "concluídas"}`);
 
   return (
-    <div className="flex flex-col h-full overflow-y-scroll bg-bg-base">
+    <div className="flex flex-col h-full overflow-y-scroll">
       <div className="max-w-4xl w-full mx-auto px-8 py-8 flex flex-col gap-8">
         {/* Page title */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-[length:var(--text-lg)] font-semibold text-text-primary">Transfers</h1>
+            <h1 className="text-[28px] font-bold tracking-tight text-text-primary">Transferências</h1>
             <p className="text-[length:var(--text-xs)] text-text-muted mt-1">
-              Active, queued, and completed file transfers across all sessions
+              Transferências ativas, na fila e concluídas de todas as sessões
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
@@ -32,7 +32,7 @@ export function TransfersPage() {
                 onClick={onClearFinished}
                 className="px-3 py-1.5 rounded-md text-[length:var(--text-xs)] font-medium text-text-secondary hover:text-text-primary bg-bg-subtle hover:bg-bg-muted border border-border transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                Clear completed
+                Limpar concluídas
               </button>
             )}
           </div>

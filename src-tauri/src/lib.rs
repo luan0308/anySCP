@@ -5,6 +5,7 @@ mod editors;
 mod ftp;
 mod import;
 mod mcp;
+mod migrate;
 mod portforward;
 mod s3;
 mod scp;
@@ -71,7 +72,7 @@ pub fn run() {
     }
 
     tracing_subscriber::fmt()
-        .with_env_filter("anyscp=debug,russh=info")
+        .with_env_filter("anyscp=debug,anyscp_lib=debug,russh=info")
         .init();
 
     tauri::Builder::default()
@@ -86,8 +87,19 @@ pub fn run() {
                 .app_data_dir()
                 .map_err(|e| format!("could not resolve app data dir: {e}"))?;
 
+            // First launch after the rename: bring the anySCP data along.
+            let imported = migrate::import_from_anyscp(&app_data_dir).unwrap_or_else(|e| {
+                tracing::warn!("could not import anySCP data: {e}");
+                false
+            });
+
             let host_db = HostDb::new(&app_data_dir)
                 .map_err(|e| format!("failed to initialise database: {e}"))?;
+            if imported {
+                for key in migrate::RESET_APPEARANCE_KEYS {
+                    let _ = host_db.delete_setting(key);
+                }
+            }
 
             // Resolve the persisted theme up-front and inject it onto <html>
             // *before* the page loads, so the very first paint already carries
@@ -107,7 +119,7 @@ pub fn run() {
                 .ok()
                 .flatten()
                 .and_then(|v| v.parse().ok())
-                .unwrap_or(250.0);
+                .unwrap_or(154.0);
 
             // Optional full custom accent stored as oklch "l c h"; when present it
             // overrides the hue-based tokens (supports gray / darker shades). Inject
@@ -159,7 +171,7 @@ pub fn run() {
             );
 
             WebviewWindowBuilder::new(app.handle(), "main", WebviewUrl::App("index.html".into()))
-                .title("anySCP")
+                .title("Talktoall Files")
                 .inner_size(1200.0, 800.0)
                 .min_inner_size(800.0, 500.0)
                 .initialization_script(&theme_script)
@@ -271,6 +283,7 @@ pub fn run() {
             // Claude (MCP)
             mcp::mcp_status,
             mcp::mcp_connect_claude_desktop,
+            mcp::mcp_connect_codex,
             // FTP / FTPS
             ftp::commands::ftp_open,
             ftp::commands::ftp_close,

@@ -1,11 +1,11 @@
 [package]
 name = "anyscp"
 version = "0.0.0-dev"
-description = "A modern desktop client for SSH, SFTP, and S3"
-authors = ["Nevil Macwan <macnev2013@gmail.com>"]
+description = "Talktoall Files: SSH, SFTP, FTP/FTPS e S3 com MCP para o Claude"
+authors = ["talktoall", "Nevil Macwan <macnev2013@gmail.com>"]
 license = "MIT"
-repository = "https://github.com/macnev2013/anySCP"
-homepage = "https://github.com/macnev2013/anySCP"
+repository = "https://github.com/luan0308/talktoall-files"
+homepage = "https://github.com/luan0308/talktoall-files"
 edition = "2021"
 
 [lib]
@@ -68,6 +68,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # it's the keyutils backend, not libsecret). On Linux, PAM normally sets up
 # a session keyring on login; in containers you need `keyctl session` + a
 # non-default seccomp profile.
+# Edits Codex's config.toml without losing the user's comments/formatting.
+toml_edit = "0.25"
 keyring = { version = "3", features = ["apple-native", "linux-native", "windows-native"] }
 tauri-plugin-dialog = "2.6.0"
 tauri-plugin-updater = "2"

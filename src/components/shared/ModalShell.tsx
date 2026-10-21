@@ -169,7 +169,7 @@ export function ModalShell({
             type="button"
             onClick={onClose}
             disabled={busy}
-            aria-label="Close"
+            aria-label="Fechar"
             className="ml-3 p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-subtle transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 shrink-0"
           >
             <X size={14} strokeWidth={1.8} aria-hidden="true" />

@@ -1,10 +1,42 @@
 /* ============================================================
-   anySCP Design Tokens
+   Talktoall Files Design Tokens (based on anySCP)
    Single source of truth for all visual design.
    Consumed by Tailwind v4 via @theme and by components directly.
    ============================================================ */
 
 /* --- Font Faces (self-hosted) --- */
+
+@font-face {
+  font-family: 'Rethink Sans';
+  src: url('/fonts/rethink-sans-latin-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rethink Sans';
+  src: url('/fonts/rethink-sans-latin-500-normal.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rethink Sans';
+  src: url('/fonts/rethink-sans-latin-600-normal.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rethink Sans';
+  src: url('/fonts/rethink-sans-latin-700-normal.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 @font-face {
   font-family: 'Geist';
@@ -65,44 +97,58 @@
 /* --- Design Tokens --- */
 
 @theme {
-  /* Background layers (darkest → lightest)
-     ~0.045 lightness steps so each layer reads as a distinct surface. */
-  --color-bg-base:      oklch(0.145 0.015 264);
-  --color-bg-surface:   oklch(0.190 0.015 264);
-  --color-bg-overlay:   oklch(0.230 0.015 264);
-  --color-bg-subtle:    oklch(0.270 0.015 264);
-  --color-bg-muted:     oklch(0.320 0.012 264);
+  /* Background layers (darkest → lightest). Near-black neutral, like the
+     talktoall decks: surfaces read as white at low opacity over #0B0B0D. */
+  --color-bg-base:      oklch(0.151 0.004 286);
+  --color-bg-surface:   oklch(0.192 0.005 286);
+  --color-bg-overlay:   oklch(0.212 0.005 286);
+  --color-bg-subtle:    oklch(0.245 0.005 286);
+  --color-bg-muted:     oklch(0.300 0.006 286);
 
-  /* Text hierarchy — secondary/muted lifted to clear WCAG AA (4.5:1) */
-  --color-text-primary:   oklch(0.945 0.010 264);
-  --color-text-secondary: oklch(0.720 0.015 264);
-  --color-text-muted:     oklch(0.595 0.015 264);
-  --color-text-inverse:   oklch(0.145 0.015 264);
+  /* Text hierarchy */
+  --color-text-primary:   oklch(0.975 0.002 286);
+  --color-text-secondary: oklch(0.735 0.006 286);
+  --color-text-muted:     oklch(0.585 0.006 286);
+  --color-text-inverse:   oklch(0.234 0.007 258);
 
-  /* Accent — hue is runtime-configurable via --accent-hue (see settings) */
-  --color-accent:       oklch(0.700 0.150 var(--accent-hue, 250));
-  --color-accent-hover: oklch(0.650 0.150 var(--accent-hue, 250));
-  --color-accent-muted: oklch(0.700 0.150 var(--accent-hue, 250) / 0.15);
+  /* Accent: talktoall green #72FAA6. Hue stays runtime-configurable via
+     --accent-hue (see settings); lightness/chroma match the brand green. */
+  --color-accent:       oklch(0.888 0.168 var(--accent-hue, 154));
+  --color-accent-hover: oklch(0.835 0.168 var(--accent-hue, 154));
+  --color-accent-muted: oklch(0.888 0.168 var(--accent-hue, 154) / 0.14);
 
   /* Status */
-  --color-status-connected:    oklch(0.720 0.180 155);
-  --color-status-connecting:   oklch(0.750 0.160 80);
-  --color-status-error:        oklch(0.650 0.200 25);
-  --color-status-disconnected: oklch(0.560 0.015 264);
+  --color-status-connected:    oklch(0.888 0.168 154);
+  --color-status-connecting:   oklch(0.826 0.148 74);
+  --color-status-error:        oklch(0.735 0.163 22);
+  --color-status-disconnected: oklch(0.560 0.006 286);
 
-  /* Semantic — border lifted ~0.13 above surfaces so edges are visible */
-  --color-border:       oklch(0.320 0.012 264);
-  --color-border-focus: oklch(0.700 0.150 var(--accent-hue, 250));
-  --color-ring:         oklch(0.700 0.150 var(--accent-hue, 250) / 0.40);
+  /* Brand extras used by badges (protocol / environment) */
+  --color-brand-violet: oklch(0.713 0.166 294);
+  --color-brand-amber:  oklch(0.826 0.148 74);
+  --color-brand-red:    oklch(0.735 0.163 22);
+
+  /* Semantic */
+  --color-border:       oklch(0.265 0.005 286);
+  --color-border-focus: oklch(0.888 0.168 var(--accent-hue, 154));
+  --color-ring:         oklch(0.888 0.168 var(--accent-hue, 154) / 0.40);
+
+  /* Rounder corners: pills and 17px cards, as in the talktoall layouts. */
+  --radius-sm:  8px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  17px;
+  --radius-2xl: 22px;
+  --radius-3xl: 28px;
 
   /* Typography */
-  --font-sans: 'Geist', system-ui, sans-serif;
+  --font-sans: 'Rethink Sans', 'Geist', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
 
   /* Layout constants */
   --sidebar-width:     256px;
   --sidebar-collapsed: 0px;
-  --tabbar-height:     44px;
+  --tabbar-height:     56px;
   --statusbar-height:  26px;
 
   /* Custom scrollbar width — kept as a token so layouts that reserve the
@@ -149,9 +195,9 @@
   --color-text-muted:     oklch(0.555 0.016 260);
   --color-text-inverse:   oklch(0.985 0.003 255);
 
-  --color-accent:       oklch(0.575 0.170 var(--accent-hue, 250));
-  --color-accent-hover: oklch(0.520 0.170 var(--accent-hue, 250));
-  --color-accent-muted: oklch(0.575 0.170 var(--accent-hue, 250) / 0.14);
+  --color-accent:       oklch(0.640 0.160 var(--accent-hue, 154));
+  --color-accent-hover: oklch(0.585 0.160 var(--accent-hue, 154));
+  --color-accent-muted: oklch(0.640 0.160 var(--accent-hue, 154) / 0.14);
 
   --color-status-connected:    oklch(0.575 0.145 155);
   --color-status-connecting:   oklch(0.640 0.130 80);
@@ -159,8 +205,9 @@
   --color-status-disconnected: oklch(0.580 0.012 260);
 
   --color-border:       oklch(0.785 0.010 255);
-  --color-border-focus: oklch(0.575 0.170 var(--accent-hue, 250));
-  --color-ring:         oklch(0.575 0.170 var(--accent-hue, 250) / 0.28);
+  --color-border-focus: oklch(0.640 0.160 var(--accent-hue, 154));
+  --color-ring:         oklch(0.640 0.160 var(--accent-hue, 154) / 0.28);
+  --color-text-inverse: oklch(0.985 0.003 255);
 
   --shadow-sm:  0 1px 2px oklch(0.290 0.020 260 / 0.08);
   --shadow-md:  0 2px 10px oklch(0.290 0.020 260 / 0.10), 0 1px 2px oklch(0.290 0.020 260 / 0.06);
@@ -174,7 +221,7 @@ html, body, #root {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: var(--color-bg-base);
+  background-color: var(--color-bg-base);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   font-size: 15px;
@@ -183,6 +230,25 @@ html, body, #root {
   -moz-osx-font-smoothing: grayscale;
   transition: background-color var(--duration-base) var(--ease-expo-out),
               color var(--duration-base) var(--ease-expo-out);
+}
+
+/* Brand glows (violet top-right, green bottom-left) behind the app, as in
+   the talktoall layouts. Surfaces stay solid, so the glow shows through the
+   gaps and translucent chrome only. */
+body {
+  background-color: var(--color-bg-base);
+  background-image:
+    radial-gradient(ellipse 760px 620px at calc(100% + 120px) -150px, oklch(0.50 0.20 292 / 0.42), transparent 70%),
+    radial-gradient(ellipse 700px 560px at -150px calc(100% + 140px), oklch(0.66 0.14 152 / 0.30), transparent 70%);
+  background-attachment: fixed;
+}
+#root {
+  background: transparent;
+}
+:root[data-theme="light"] body {
+  background-image:
+    radial-gradient(ellipse 760px 620px at calc(100% + 120px) -150px, oklch(0.70 0.14 292 / 0.22), transparent 70%),
+    radial-gradient(ellipse 700px 560px at -150px calc(100% + 140px), oklch(0.80 0.12 152 / 0.25), transparent 70%);
 }
 
 /* Prevent text selection on UI chrome (not terminal) */

@@ -16,7 +16,7 @@ import { parseSqliteUtc } from "../../utils/time";
 
 function formatDateTime(iso: string): string {
   const d = parseSqliteUtc(iso);
-  return d.toLocaleString(undefined, {
+  return d.toLocaleString("pt-BR", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -27,18 +27,19 @@ function formatDateTime(iso: string): string {
 
 function formatTime(iso: string): string {
   const d = parseSqliteUtc(iso);
-  return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
 function relativeTime(iso: string): string {
   const diff = Date.now() - parseSqliteUtc(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return "agora";
+  if (mins < 60) return `há ${mins} min`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `há ${hours} h`;
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days === 1) return "ontem";
+  if (days < 7) return `há ${days} dias`;
   return formatTime(iso);
 }
 
@@ -184,7 +185,7 @@ export function HistoryPage() {
       offsetRef.current -= 1;
       setConfirmDeleteId(null);
     } catch {
-      toast.error("Failed to delete history entry.");
+      toast.error("Não foi possível excluir o registro do histórico.");
     } finally {
       setMutating(false);
     }
@@ -197,19 +198,19 @@ export function HistoryPage() {
       onClick: () => void handleTerminal(entry),
     },
     {
-      label: "Explorer",
+      label: "Arquivos",
       icon: FolderOpen,
       onClick: () => void handleExplorer(entry),
     },
     {
-      label: "Delete",
+      label: "Excluir",
       icon: Trash2,
       danger: true,
       disabled: mutating,
       onClick: () => setConfirmDeleteId(entry.id),
     },
     {
-      label: `Filter by ${entry.host_label || entry.host}`,
+      label: `Filtrar por ${entry.host_label || entry.host}`,
       separator: true,
       disabled: mutating,
       onClick: () => {
@@ -221,20 +222,20 @@ export function HistoryPage() {
 
   return (
     <>
-      <div className="flex flex-col h-full overflow-y-scroll bg-bg-base">
+      <div className="flex flex-col h-full overflow-y-scroll">
         <div className="max-w-4xl w-full mx-auto px-8 py-8 flex flex-col gap-8">
 
           {/* Page title */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-[length:var(--text-lg)] font-semibold text-text-primary">History</h1>
+              <h1 className="text-[28px] font-bold tracking-tight text-text-primary">Histórico</h1>
               <p className="text-[length:var(--text-xs)] text-text-muted mt-1">
-                Audit log of all SSH and FTP connections — when you connected, to which host, and as which user
+                Registro de todas as conexões SSH e FTP: quando você conectou, em qual servidor e com qual usuário
               </p>
             </div>
             {entries.length > 0 && (
               <span className="text-[length:var(--text-2xs)] text-text-muted tabular-nums shrink-0">
-                {totalCount} connections
+                {totalCount} {entries.length === 1 && !hasMore ? "conexão" : "conexões"}
               </span>
             )}
           </div>
@@ -252,8 +253,8 @@ export function HistoryPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Escape") setQuery(""); }}
-              placeholder="Search connections..."
-              aria-label="Search connection history"
+              placeholder="Buscar conexões…"
+              aria-label="Buscar no histórico de conexões"
               className={[
                 "w-full pl-10 pr-4 py-2.5 rounded-xl text-[length:var(--text-sm)]",
                 "bg-bg-surface border border-border text-text-primary placeholder:text-text-muted",
@@ -269,9 +270,9 @@ export function HistoryPage() {
               <CustomSelect
                 value={hostFilter ?? ""}
                 onChange={(v) => setHostFilter(v || null)}
-                aria-label="Filter by host"
+                aria-label="Filtrar por servidor"
                 options={[
-                  { value: "", label: "All Hosts" },
+                  { value: "", label: "Todos os servidores" },
                   ...hosts.map((h) => ({
                     value: h.id,
                     label: h.label || `${h.username}@${h.host}`,
@@ -306,7 +307,7 @@ export function HistoryPage() {
                             "flex items-center gap-4 px-4 py-2 cursor-default",
                             "hover:bg-bg-overlay/40 transition-colors duration-[var(--duration-fast)]",
                           ].join(" ")}
-                          title="Double-click to reconnect · Right-click for options"
+                          title="Clique duplo para reconectar · Botão direito para mais opções"
                         >
                           {/* Time */}
                           <span
@@ -323,7 +324,7 @@ export function HistoryPage() {
                               setQuery("");
                             }}
                             className="text-[length:var(--text-sm)] font-medium text-text-primary truncate flex-1 text-left hover:text-accent transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-                            title={`Filter by ${entry.host_label || entry.host}`}
+                            title={`Filtrar por ${entry.host_label || entry.host}`}
                           >
                             {entry.host_label || entry.host}
                           </button>
@@ -361,7 +362,7 @@ export function HistoryPage() {
                   ) : (
                     <ChevronDown size={14} strokeWidth={2} />
                   )}
-                  {loading ? "Loading..." : "Load more"}
+                  {loading ? "Carregando…" : "Carregar mais"}
                 </button>
               )}
             </div>
@@ -371,16 +372,16 @@ export function HistoryPage() {
             </div>
           ) : entries.length > 0 && query.trim() ? (
             <p className="text-[length:var(--text-sm)] text-text-muted py-8 text-center">
-              No connections match &ldquo;{query}&rdquo;
+              Nenhuma conexão encontrada para &ldquo;{query}&rdquo;
             </p>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <Clock size={30} strokeWidth={1.2} className="text-text-muted/30" />
               <p className="text-[length:var(--text-sm)] text-text-muted">
-                No connection history
+                Nenhuma conexão no histórico
               </p>
               <p className="text-[length:var(--text-xs)] text-text-muted/60 text-center max-w-xs">
-                Your SSH connection log will appear here as you connect to hosts
+                O registro das suas conexões aparece aqui conforme você se conecta aos servidores
               </p>
             </div>
           )}
@@ -398,8 +399,8 @@ export function HistoryPage() {
 
       <ConfirmDangerDialog
         open={confirmDeleteId !== null}
-        title="Delete this history record?"
-        message="This record will be permanently removed."
+        title="Excluir este registro do histórico?"
+        message="Este registro será removido para sempre."
         busy={mutating}
         onCancel={() => setConfirmDeleteId(null)}
         onConfirm={() => {
@@ -430,10 +431,10 @@ function groupByDate(entries: ConnectionHistoryEntry[]): DateGroup[] {
     const dateStr = d.toDateString();
 
     const label = dateStr === todayStr
-      ? "Today"
+      ? "Hoje"
       : dateStr === yesterdayStr
-        ? "Yesterday"
-        : d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+        ? "Ontem"
+        : d.toLocaleDateString("pt-BR", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
     if (!groups.has(label)) groups.set(label, []);
     groups.get(label)!.push(entry);

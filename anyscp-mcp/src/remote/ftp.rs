@@ -1,4 +1,4 @@
-//! FTP/FTPS through the client shared with the anySCP app.
+//! FTP/FTPS through the client shared with the Talktoall Files app.
 
 use anyhow::{anyhow, bail, Context, Result};
 use anyscp_ftp::{EntryKind, FtpClient, FtpConfig, FtpEntry, Security};
@@ -50,7 +50,7 @@ impl FtpRemote {
             Some(StoredCredential::Password { password }) => password,
             _ if server.username.eq_ignore_ascii_case("anonymous") => "anonymous@".to_string(),
             _ => bail!(
-                "No password is saved for {} in anySCP. Edit the connection in the app and save the password.",
+                "No password is saved for {} in Talktoall Files. Edit the connection in the app and save the password.",
                 server.label
             ),
         };

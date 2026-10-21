@@ -27,17 +27,18 @@ function HighlightedCommand({ command }: { command: string }) {
 }
 
 function formatLastUsed(iso: string | null): string {
-  if (!iso) return "never";
+  if (!iso) return "nunca";
   const date = new Date(iso);
   const now = Date.now();
   const diff = now - date.getTime();
   const days = Math.floor(diff / 86_400_000);
-  if (days === 0) return "today";
-  if (days === 1) return "yesterday";
-  if (days < 30) return `${days}d ago`;
+  if (days === 0) return "hoje";
+  if (days === 1) return "ontem";
+  if (days < 30) return `há ${days} dias`;
   const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}yr ago`;
+  if (months < 12) return months === 1 ? "há 1 mês" : `há ${months} meses`;
+  const years = Math.floor(months / 12);
+  return years === 1 ? "há 1 ano" : `há ${years} anos`;
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -67,17 +68,17 @@ export function SnippetCard({ snippet, onEdit, onDelete, onDuplicate }: SnippetC
 
   const contextItems = [
     {
-      label: "Edit",
+      label: "Editar",
       icon: Pencil,
       onClick: () => onEdit(snippet),
     },
     {
-      label: "Duplicate",
+      label: "Duplicar",
       icon: Copy,
       onClick: () => onDuplicate(snippet),
     },
     {
-      label: "Delete",
+      label: "Excluir",
       icon: Trash2,
       danger: true,
       onClick: () => setConfirmDelete(true),
@@ -110,7 +111,7 @@ export function SnippetCard({ snippet, onEdit, onDelete, onDuplicate }: SnippetC
                   size={14}
                   strokeWidth={2}
                   className="text-status-error shrink-0"
-                  aria-label="Dangerous — requires confirmation"
+                  aria-label="Perigoso: pede confirmação"
                 />
               )}
             </div>
@@ -119,8 +120,8 @@ export function SnippetCard({ snippet, onEdit, onDelete, onDuplicate }: SnippetC
           {/* Edit button — visible on hover */}
           <button
             onClick={() => onEdit(snippet)}
-            title="Edit snippet"
-            aria-label="Edit snippet"
+            title="Editar comando"
+            aria-label="Editar comando"
             className={[
               "shrink-0 flex items-center justify-center w-7 h-7 rounded-md",
               "text-text-muted hover:text-text-secondary hover:bg-bg-subtle",
@@ -159,8 +160,8 @@ export function SnippetCard({ snippet, onEdit, onDelete, onDuplicate }: SnippetC
 
           <span className="ml-auto text-[11px] text-text-muted shrink-0 whitespace-nowrap">
             {snippet.use_count > 0
-              ? `Used ${snippet.use_count}x · ${formatLastUsed(snippet.last_used_at)}`
-              : "Never used"}
+              ? `Usado ${snippet.use_count}x · ${formatLastUsed(snippet.last_used_at)}`
+              : "Nunca usado"}
           </span>
         </div>
       </div>
@@ -175,8 +176,8 @@ export function SnippetCard({ snippet, onEdit, onDelete, onDuplicate }: SnippetC
 
       <ConfirmDangerDialog
         open={confirmDelete}
-        title="Delete this snippet?"
-        message="This snippet will be permanently removed."
+        title="Excluir este comando?"
+        message="Este comando será removido permanentemente."
         onCancel={() => setConfirmDelete(false)}
         onConfirm={() => {
           setConfirmDelete(false);

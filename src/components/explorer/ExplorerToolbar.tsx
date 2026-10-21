@@ -39,27 +39,27 @@ interface ExplorerToolbarProps {
 
 // cache icons so they render once
 const ICON_BTN_CLASS = [
-  "flex items-center justify-center w-7 h-7 rounded-md shrink-0",
-  "text-text-muted hover:text-text-secondary hover:bg-bg-subtle",
+  "flex items-center justify-center w-9 h-9 rounded-[10px] shrink-0",
+  "bg-white/[0.07] text-text-secondary hover:text-text-primary hover:bg-white/[0.12]",
   "transition-colors duration-[var(--duration-fast)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
   "disabled:opacity-40 disabled:cursor-not-allowed",
 ].join(" ");
 const PATH_INPUT_CLASS = [
-  "flex-1 min-w-0 mx-1 px-1.5 py-0.5 rounded",
+  "flex-1 min-w-0 mx-1 px-2 py-1 rounded-full",
   "bg-bg-subtle text-text-primary text-[length:var(--text-sm)]",
   "border border-ring outline-none",
 ].join(" ");
 const BREADCRUMB_BAR_CLASS =
-  "flex items-center gap-0 overflow-x-auto flex-1 min-w-0 mx-1 cursor-text rounded hover:bg-bg-subtle/40";
+  "flex items-center gap-0 overflow-x-auto flex-1 min-w-0 mx-1 cursor-text rounded-full [&::-webkit-scrollbar]:hidden";
 const SEGMENT_BTN_BASE_CLASS = [
-  "px-1 py-0.5 rounded text-[length:var(--text-sm)]",
+  "px-1.5 py-1 rounded-full text-[length:var(--text-sm)] whitespace-nowrap",
   "transition-colors duration-[var(--duration-fast)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 ].join(" ");
-const SEGMENT_BTN_LAST_CLASS = "text-text-primary font-medium cursor-default";
+const SEGMENT_BTN_LAST_CLASS = "text-text-primary font-semibold cursor-default";
 const SEGMENT_BTN_LINK_CLASS =
-  "text-text-muted hover:text-text-secondary hover:bg-bg-subtle/70 cursor-pointer";
+  "text-text-secondary hover:text-text-primary hover:bg-white/[0.07] cursor-pointer";
 
 /**
  * Normalize a hand-typed path to the provider's convention: SFTP paths are
@@ -155,17 +155,18 @@ export const ExplorerToolbar = memo(function ExplorerToolbar({
     providerType === "sftp" ? currentPath === "/" : currentPath === "";
 
   return (
-    <div className="flex items-center h-10 px-2 border-b border-border bg-bg-surface shrink-0 gap-1 no-select">
-      {/* Home button */}
+    <div className="flex items-center px-6 pb-4 shrink-0 gap-2 no-select">
+      {/* Path pill: home + breadcrumb (click to type a path) */}
+      <div className="flex items-center flex-1 min-w-0 h-11 pl-2 pr-3 rounded-full bg-white/[0.07]">
       <button
         data-testid="explorer-home"
         onClick={handleHome}
         disabled={loading || isAtRoot}
-        title={`Go to ${provider.rootLabel()}`}
-        aria-label="Go to root"
-        className={ICON_BTN_CLASS}
+        title={`Ir para ${provider.rootLabel()}`}
+        aria-label="Ir para a raiz"
+        className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 text-text-secondary hover:text-text-primary hover:bg-white/[0.08] disabled:opacity-60 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <Home size={15} strokeWidth={1.8} aria-hidden="true" />
+        <Home size={17} strokeWidth={1.75} aria-hidden="true" />
       </button>
 
       {/* Breadcrumb path */}
@@ -181,7 +182,7 @@ export const ExplorerToolbar = memo(function ExplorerToolbar({
           spellCheck={false}
           autoCorrect="off"
           autoCapitalize="off"
-          aria-label="Edit current path"
+          aria-label="Editar caminho atual"
           className={PATH_INPUT_CLASS}
         />
       ) : (
@@ -198,8 +199,8 @@ export const ExplorerToolbar = memo(function ExplorerToolbar({
               beginEdit();
             }
           }}
-          title="Click to type a path"
-          aria-label="Current path"
+          title="Clique para digitar um caminho"
+          aria-label="Caminho atual"
           className={`${BREADCRUMB_BAR_CLASS} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
         >
           {segments.map((seg, index) => {
@@ -226,7 +227,7 @@ export const ExplorerToolbar = memo(function ExplorerToolbar({
                     if (!isLast) onNavigate(seg.path);
                   }}
                   disabled={isLast}
-                  title={isLast ? seg.path : `Navigate to ${seg.path}`}
+                  title={isLast ? seg.path : `Ir para ${seg.path}`}
                   className={`${SEGMENT_BTN_BASE_CLASS} ${isLast ? SEGMENT_BTN_LAST_CLASS : SEGMENT_BTN_LINK_CLASS}`}
                 >
                   {isRoot ? provider.rootLabel() : seg.label}
@@ -245,26 +246,11 @@ export const ExplorerToolbar = memo(function ExplorerToolbar({
           size={15}
           strokeWidth={2}
           className="text-accent motion-safe:animate-spin shrink-0"
-          aria-label="Operation in progress"
+          aria-label="Operação em andamento"
         />
       )}
 
-      {/* Separator */}
-      <span className="w-px h-4 bg-border shrink-0" aria-hidden="true" />
-
-      {/* Upload file */}
-      {caps.canUpload && (
-        <button
-          data-testid="explorer-upload"
-          onClick={onUpload}
-          disabled={loading}
-          title="Upload files"
-          aria-label="Upload files"
-          className={ICON_BTN_CLASS}
-        >
-          <Upload size={15} strokeWidth={1.8} aria-hidden="true" />
-        </button>
-      )}
+      </div>
 
       {/* Upload folder */}
       {caps.canUpload && onUploadFolder && (
@@ -272,11 +258,11 @@ export const ExplorerToolbar = memo(function ExplorerToolbar({
           data-testid="explorer-upload-folder"
           onClick={onUploadFolder}
           disabled={loading}
-          title="Upload folder"
-          aria-label="Upload folder"
+          title="Enviar pasta"
+          aria-label="Enviar pasta"
           className={ICON_BTN_CLASS}
         >
-          <FolderUp size={15} strokeWidth={1.8} aria-hidden="true" />
+          <FolderUp size={16} strokeWidth={1.75} aria-hidden="true" />
         </button>
       )}
 
@@ -286,11 +272,11 @@ export const ExplorerToolbar = memo(function ExplorerToolbar({
           data-testid="explorer-new-file"
           onClick={onNewFile}
           disabled={loading}
-          title="New file"
-          aria-label="New file"
+          title="Novo arquivo"
+          aria-label="Novo arquivo"
           className={ICON_BTN_CLASS}
         >
-          <FilePlus size={15} strokeWidth={1.8} aria-hidden="true" />
+          <FilePlus size={16} strokeWidth={1.75} aria-hidden="true" />
         </button>
       )}
 
@@ -300,11 +286,11 @@ export const ExplorerToolbar = memo(function ExplorerToolbar({
           data-testid="explorer-new-folder"
           onClick={onNewFolder}
           disabled={loading}
-          title="New folder"
-          aria-label="New folder"
+          title="Nova pasta"
+          aria-label="Nova pasta"
           className={ICON_BTN_CLASS}
         >
-          <FolderPlus size={15} strokeWidth={1.8} aria-hidden="true" />
+          <FolderPlus size={16} strokeWidth={1.75} aria-hidden="true" />
         </button>
       )}
 
@@ -313,8 +299,8 @@ export const ExplorerToolbar = memo(function ExplorerToolbar({
         data-testid="explorer-refresh"
         onClick={onRefresh}
         disabled={loading}
-        title="Refresh"
-        aria-label="Refresh"
+        title="Atualizar"
+        aria-label="Atualizar"
         className={ICON_BTN_CLASS}
       >
         <RefreshCw
@@ -331,8 +317,8 @@ export const ExplorerToolbar = memo(function ExplorerToolbar({
           onClick={onToggleSudo}
           disabled={sudoBusy}
           aria-busy={sudoBusy}
-          title={sudoMode ? "Disable sudo mode" : "Enable sudo mode"}
-          aria-label={sudoMode ? "Disable sudo mode" : "Enable sudo mode"}
+          title={sudoMode ? "Desativar modo sudo" : "Ativar modo sudo"}
+          aria-label={sudoMode ? "Desativar modo sudo" : "Ativar modo sudo"}
           aria-pressed={!!sudoMode}
           className={
             sudoMode
@@ -348,10 +334,31 @@ export const ExplorerToolbar = memo(function ExplorerToolbar({
               className="motion-safe:animate-spin"
             />
           ) : (
-            <Shield size={15} strokeWidth={1.8} aria-hidden="true" />
+            <Shield size={16} strokeWidth={1.75} aria-hidden="true" />
           )}
         </button>
       )}
+      {/* Upload file */}
+      {caps.canUpload && (
+        <button
+          data-testid="explorer-upload"
+          onClick={onUpload}
+          disabled={loading}
+          title="Enviar arquivos"
+          aria-label="Enviar arquivos"
+          className={[
+            "flex items-center gap-2 h-11 px-5 ml-2 rounded-full shrink-0",
+            "bg-accent text-text-inverse text-[length:var(--text-sm)] font-bold",
+            "hover:bg-accent-hover transition-colors duration-[var(--duration-fast)]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
+          ].join(" ")}
+        >
+          <Upload size={17} strokeWidth={2.25} aria-hidden="true" />
+          <span>Enviar arquivos</span>
+        </button>
+      )}
+
     </div>
   );
 });

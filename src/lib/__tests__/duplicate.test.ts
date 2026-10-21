@@ -47,7 +47,7 @@ describe("duplicateS3Connection", () => {
     // Said now, rather than leaving the user to hit an opaque auth failure on
     // the copy's first listing.
     expect(toastMessages()).toEqual([
-      'Duplicated "minio-prod", but its access keys didn\'t copy — re-enter them on the copy.',
+      '"minio-prod" foi duplicado, mas as chaves de acesso não foram copiadas. Informe as chaves de novo na cópia.',
     ]);
   });
 
@@ -56,7 +56,7 @@ describe("duplicateS3Connection", () => {
 
     await duplicateS3Connection(conn);
 
-    expect(toastMessages()).toEqual(['Couldn\'t duplicate "minio-prod".']);
+    expect(toastMessages()).toEqual(['Não foi possível duplicar "minio-prod".']);
   });
 
   it("never rejects, so neither call site needs its own catch", async () => {

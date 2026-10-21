@@ -195,7 +195,7 @@ export function SnippetPalette() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search snippets..."
+                placeholder="Buscar comandos…"
                 className="flex-1 bg-transparent text-[length:var(--text-sm)] text-text-primary placeholder:text-text-muted outline-none"
               />
               <kbd className="text-[11px] text-text-muted bg-bg-muted px-1.5 py-0.5 rounded font-mono">esc</kbd>
@@ -205,7 +205,7 @@ export function SnippetPalette() {
             <div ref={listRef} className="max-h-[320px] overflow-y-auto py-1">
               {filtered.length === 0 ? (
                 <p className="text-[length:var(--text-xs)] text-text-muted px-4 py-8 text-center">
-                  {query ? `No snippets match "${query}"` : "No snippets saved yet"}
+                  {query ? `Nenhum comando encontrado para "${query}"` : "Nenhum comando salvo ainda"}
                 </p>
               ) : (
                 filtered.map((snippet, i) => (
@@ -248,9 +248,9 @@ export function SnippetPalette() {
             {/* Footer hint */}
             {filtered.length > 0 && (
               <div className="flex items-center gap-3 px-4 py-2 border-t border-border text-[11px] text-text-muted">
-                <span><kbd className="font-mono bg-bg-muted px-1 py-px rounded">↑↓</kbd> navigate</span>
-                <span><kbd className="font-mono bg-bg-muted px-1 py-px rounded">↵</kbd> execute</span>
-                <span><kbd className="font-mono bg-bg-muted px-1 py-px rounded">esc</kbd> close</span>
+                <span><kbd className="font-mono bg-bg-muted px-1 py-px rounded">↑↓</kbd> navegar</span>
+                <span><kbd className="font-mono bg-bg-muted px-1 py-px rounded">↵</kbd> executar</span>
+                <span><kbd className="font-mono bg-bg-muted px-1 py-px rounded">esc</kbd> fechar</span>
               </div>
             )}
           </>
@@ -263,7 +263,7 @@ export function SnippetPalette() {
                 type="button"
                 onClick={goBackToBrowse}
                 className="p-1 -ml-1 rounded-md text-text-muted hover:text-accent hover:bg-accent/10 transition-colors"
-                title="Back (Esc)"
+                title="Voltar (Esc)"
               >
                 <ArrowLeft size={15} strokeWidth={2} />
               </button>
@@ -273,7 +273,7 @@ export function SnippetPalette() {
                 </p>
               </div>
               {activeSnippet.is_dangerous && (
-                <span title="Dangerous command"><AlertTriangle size={14} strokeWidth={2} className="text-status-error shrink-0" /></span>
+                <span title="Comando perigoso"><AlertTriangle size={14} strokeWidth={2} className="text-status-error shrink-0" /></span>
               )}
               <button
                 type="submit"
@@ -281,7 +281,7 @@ export function SnippetPalette() {
                 disabled={hasUnmetRequired}
                 className="flex items-center gap-1.5 h-7 px-3 text-[11px] font-medium rounded-lg text-text-inverse bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
               >
-                Run
+                Executar
                 <kbd className="text-[10px] opacity-70 font-mono">↵</kbd>
               </button>
             </div>
@@ -318,7 +318,7 @@ export function SnippetPalette() {
                         placeholder={placeholder}
                         className="w-full"
                         options={[
-                          { value: "", label: `— ${placeholder} —` },
+                          { value: "", label: `Selecionar: ${placeholder}` },
                           ...options.map((opt) => ({ value: opt, label: opt })),
                         ]}
                       />
@@ -340,9 +340,9 @@ export function SnippetPalette() {
 
             {/* Footer */}
             <div className="flex items-center gap-3 px-4 py-2 border-t border-border text-[11px] text-text-muted">
-              <span><kbd className="font-mono bg-bg-muted px-1 py-px rounded">tab</kbd> next field</span>
-              <span><kbd className="font-mono bg-bg-muted px-1 py-px rounded">↵</kbd> run</span>
-              <span><kbd className="font-mono bg-bg-muted px-1 py-px rounded">esc</kbd> back</span>
+              <span><kbd className="font-mono bg-bg-muted px-1 py-px rounded">tab</kbd> próximo campo</span>
+              <span><kbd className="font-mono bg-bg-muted px-1 py-px rounded">↵</kbd> executar</span>
+              <span><kbd className="font-mono bg-bg-muted px-1 py-px rounded">esc</kbd> voltar</span>
             </div>
           </form>
         ) : null}

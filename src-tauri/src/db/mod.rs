@@ -1649,6 +1649,16 @@ impl HostDb {
         Ok(())
     }
 
+    /// Remove a setting so its default applies again.
+    pub fn delete_setting(&self, key: &str) -> Result<(), DbError> {
+        let conn = self
+            .conn
+            .lock()
+            .map_err(|e| DbError::InitError(format!("db lock poisoned: {e}")))?;
+        conn.execute("DELETE FROM app_settings WHERE key = ?1", params![key])?;
+        Ok(())
+    }
+
     /// Fetch a single setting by key. Returns `None` if the key is not present.
     pub fn get_setting(&self, key: &str) -> Result<Option<String>, DbError> {
         let conn = self

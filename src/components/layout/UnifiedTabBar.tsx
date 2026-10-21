@@ -9,6 +9,7 @@ import {
   FolderOpen,
   Cloud,
   Monitor,
+  Server,
   Braces,
   Plug,
   History,
@@ -20,11 +21,12 @@ import {
 import { useTabStore, type UnifiedTab, type PageId } from "../../stores/tab-store";
 import { useSessionStore, countPanes, getTopDirection } from "../../stores/session-store";
 import { useUiStore } from "../../stores/ui-store";
+import { openSettingsSection } from "../settings/SettingsPage";
 
 // ─── Icon mapping ───────────────────────────────────────────────────────────
 
 const PAGE_ICONS: Record<PageId, React.ElementType> = {
-  hosts: Monitor,
+  hosts: Server,
   snippets: Braces,
   "port-forwarding": Plug,
   history: History,
@@ -48,7 +50,7 @@ const SNIPPET_SHORTCUT = IS_MAC ? "⌘K" : "Ctrl K";
 
 // Browser-style tab-overflow scroll button (shown instead of a scrollbar).
 const CHEVRON_BTN =
-  "shrink-0 flex items-center justify-center w-6 h-[32px] rounded-md text-text-muted " +
+  "shrink-0 flex items-center justify-center w-7 h-[40px] rounded-full text-text-muted " +
   "hover:text-text-primary hover:bg-bg-overlay disabled:opacity-30 disabled:pointer-events-none " +
   "transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
@@ -146,13 +148,13 @@ export function UnifiedTabBar() {
   if (tabOrder.length === 0) return null;
 
   return (
-    <div className="flex items-center h-[var(--tabbar-height)] no-select px-2 pt-2">
+    <div className="flex items-center h-[var(--tabbar-height)] no-select px-2 pt-2 gap-2">
       {overflow && (
         <button
           type="button"
           onClick={() => scrollTabs(-1)}
           disabled={!canLeft}
-          aria-label="Scroll tabs left"
+          aria-label="Rolar abas para a esquerda"
           className={`${CHEVRON_BTN} mr-1`}
         >
           <ChevronLeft size={16} strokeWidth={2} aria-hidden="true" />
@@ -162,7 +164,7 @@ export function UnifiedTabBar() {
         ref={scrollRef}
         className="flex items-center gap-2.5 overflow-x-auto overflow-y-hidden flex-1 min-w-0 [&::-webkit-scrollbar]:hidden"
         role="tablist"
-        aria-label="Open sessions"
+        aria-label="Sessões abertas"
       >
         {tabOrder.map((tabId) => {
           const tab = tabs.get(tabId);
@@ -210,26 +212,26 @@ export function UnifiedTabBar() {
               // Middle-click closes the tab, like a browser.
               onAuxClick={(e) => { if (e.button === 1 && closeable) { e.preventDefault(); void handleClose(tabId, tab, e); } }}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveTab(tabId); } }}
-              title={tab.label + (paneCount > 1 ? ` (${paneCount} panes)` : "")}
+              title={tab.label + (paneCount > 1 ? ` (${paneCount} painéis)` : "")}
               className={[
-                "group relative flex items-center gap-2 px-3.5 h-[32px] shrink-0 max-w-[220px]",
-                "text-[length:var(--text-sm)] leading-none rounded-md cursor-pointer",
+                "group relative flex items-center gap-2 px-4 h-[40px] shrink-0 max-w-[240px]",
+                "text-[length:var(--text-sm)] font-semibold leading-none rounded-full cursor-pointer",
                 "transition-[color,background-color] duration-[var(--duration-fast)]",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 isActive
-                  ? "bg-accent/15 text-accent border border-accent/40"
-                  : "bg-bg-overlay/80 text-text-secondary border border-border/60 hover:text-text-primary hover:bg-bg-overlay hover:border-border",
+                  ? "bg-white/[0.12] text-text-primary"
+                  : "bg-white/[0.05] text-text-secondary hover:text-text-primary hover:bg-white/[0.09]",
               ].join(" ")}
             >
               {/* Tab icon */}
               <Icon
-                size={14}
-                strokeWidth={1.8}
+                size={16}
+                strokeWidth={1.75}
                 className={[
                   "shrink-0",
                   tab.type === "terminal" && statusDot ? statusDot.replace("bg-", "text-") : "",
-                  tab.type === "sftp" || tab.type === "s3" ? "text-status-connected" : "",
-                  tab.type === "page" && isActive ? "text-accent" : "",
+                  tab.type === "sftp" || tab.type === "s3" ? (isActive ? "text-text-primary" : "text-text-muted") : "",
+                  tab.type === "page" && isActive ? "text-text-primary" : "",
                   tab.type === "page" && !isActive ? "text-text-muted" : "",
                 ].join(" ")}
                 aria-hidden="true"
@@ -239,7 +241,7 @@ export function UnifiedTabBar() {
                   toggling font-medium on activate/deactivate doesn't resize the
                   tab and shift its neighbours (see .label-stable-bold). */}
               <span data-label={tab.label} className="label-stable-bold">
-                <span className={`truncate ${isActive ? "font-medium" : ""}`}>
+                <span className="truncate">
                   {tab.label}
                 </span>
               </span>
@@ -262,7 +264,7 @@ export function UnifiedTabBar() {
 
               {/* Zoom indicator */}
               {isZoomed && (
-                <span className="shrink-0 text-accent" aria-hidden="true" title="Zoomed pane">
+                <span className="shrink-0 text-accent" aria-hidden="true" title="Painel ampliado">
                   <Maximize2 size={11} strokeWidth={2} />
                 </span>
               )}
@@ -273,18 +275,16 @@ export function UnifiedTabBar() {
                   data-testid={`tab-${tabId}-close`}
                   onClick={(e) => void handleClose(tabId, tab, e)}
                   className={[
-                    "ml-auto p-0.5 -mr-1 rounded-lg shrink-0",
-                    isActive
-                      ? "text-accent/60 hover:text-accent hover:bg-accent/10"
-                      : "text-text-muted hover:text-text-primary hover:bg-bg-muted",
-                    "opacity-0 group-hover:opacity-100",
+                    "ml-1 p-1 -mr-1.5 rounded-full shrink-0",
+                    "text-text-muted hover:text-text-primary hover:bg-white/10",
+                    isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100",
                     "transition-all duration-[var(--duration-fast)]",
                     "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   ].join(" ")}
-                  aria-label={`Close ${tab.label}`}
+                  aria-label={`Fechar ${tab.label}`}
                   tabIndex={-1}
                 >
-                  <X size={12} strokeWidth={2} aria-hidden="true" />
+                  <X size={14} strokeWidth={2} aria-hidden="true" />
                 </button>
               )}
             </div>
@@ -298,7 +298,7 @@ export function UnifiedTabBar() {
           type="button"
           onClick={() => scrollTabs(1)}
           disabled={!canRight}
-          aria-label="Scroll tabs right"
+          aria-label="Rolar abas para a direita"
           className={`${CHEVRON_BTN} ml-1`}
         >
           <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
@@ -312,11 +312,11 @@ export function UnifiedTabBar() {
         <div className="flex items-center gap-1 pl-2 shrink-0">
           <button
             onClick={toggleSnippetPanel}
-            title={`Snippets (${SNIPPET_SHORTCUT})`}
-            aria-label="Open snippet palette"
+            title={`Comandos (${SNIPPET_SHORTCUT})`}
+            aria-label="Abrir paleta de comandos"
             aria-pressed={snippetPanelOpen}
             className={[
-              "flex items-center gap-1.5 h-7 px-2 rounded-md border shrink-0",
+              "flex items-center gap-1.5 h-9 px-3 rounded-full border shrink-0",
               "text-[length:var(--text-xs)] font-medium",
               "transition-colors duration-[var(--duration-fast)]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -326,11 +326,77 @@ export function UnifiedTabBar() {
             ].join(" ")}
           >
             <Code size={14} strokeWidth={1.8} aria-hidden="true" />
-            <span>Snippets</span>
+            <span>Comandos</span>
           </button>
         </div>
       )}
+
+      <AgentStatusPill />
     </div>
+  );
+}
+
+// ─── Claude / Codex status ───────────────────────────────────────────────────
+
+interface AgentStatus {
+  server_path: string | null;
+  connected: boolean;
+  codex_connected: boolean;
+}
+
+/** "Claude conectado" pill on the right of the tab bar; opens Settings › Claude e Codex. */
+function AgentStatusPill() {
+  const [status, setStatus] = useState<AgentStatus | null>(null);
+  const openPageTab = useTabStore((s) => s.openPageTab);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const { invoke } = await import("@tauri-apps/api/core");
+        const s = await invoke<AgentStatus>("mcp_status");
+        if (!cancelled) setStatus(s);
+      } catch {
+        if (!cancelled) setStatus(null);
+      }
+    };
+    void load();
+    window.addEventListener("focus", load);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", load);
+    };
+  }, []);
+
+  if (!status) return null;
+  const label = status.connected
+    ? "Claude conectado"
+    : status.codex_connected
+      ? "Codex conectado"
+      : "Conectar ao Claude";
+  const on = status.connected || status.codex_connected;
+
+  return (
+    <button
+      type="button"
+      data-testid="agent-status-pill"
+      onClick={() => {
+        openSettingsSection("claude");
+        openPageTab("settings", "Configurações");
+      }}
+      className={[
+        "flex items-center gap-2 h-[40px] px-4 rounded-full shrink-0",
+        "text-[length:var(--text-xs)] font-semibold",
+        "transition-colors duration-[var(--duration-fast)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        on
+          ? "bg-accent/[0.12] text-accent hover:bg-accent/20"
+          : "bg-white/[0.05] text-text-secondary hover:text-text-primary hover:bg-white/[0.09]",
+      ].join(" ")}
+    >
+      <span className={`w-2 h-2 rounded-full ${on ? "bg-accent" : "bg-text-muted"}`} aria-hidden="true" />
+      {label}
+    </button>
   );
 }
 

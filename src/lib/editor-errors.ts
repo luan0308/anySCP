@@ -11,5 +11,5 @@ export function editorLaunchErrorMessage(err: unknown): string {
     if (msg) return msg;
   }
   if (typeof err === "string" && err.trim()) return err;
-  return "Couldn't open the editor. Configure one in Settings → Editors.";
+  return "Não foi possível abrir o editor. Configure um em Configurações → Editores.";
 }

@@ -157,7 +157,7 @@ async fn authenticate(handle: &mut client::Handle<Handler>, server: &Server) -> 
         if data.trim_start().starts_with("PuTTY-User-Key-File") {
             bail!(
                 "{} uses a PuTTY .ppk key. Convert it to OpenSSH format (PuTTYgen > Conversions > \
-                 Export OpenSSH key) and point the server to the new file in anySCP.",
+                 Export OpenSSH key) and point the server to the new file in Talktoall Files.",
                 server.label
             );
         }
@@ -175,7 +175,7 @@ async fn authenticate(handle: &mut client::Handle<Handler>, server: &Server) -> 
         let password = match cred {
             Some(StoredCredential::Password { password }) => password,
             _ => bail!(
-                "No password is saved for {} in anySCP. Edit the server in the app and save the password.",
+                "No password is saved for {} in Talktoall Files. Edit the server in the app and save the password.",
                 server.label
             ),
         };

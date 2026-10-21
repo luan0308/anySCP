@@ -50,7 +50,7 @@ fn tool(
 }
 
 fn server_prop() -> Value {
-    json!({ "type": "string", "description": "Server name as saved in anySCP (or its id). See list_servers." })
+    json!({ "type": "string", "description": "Server name as saved in Talktoall Files (or its id). See list_servers." })
 }
 
 const WRITES: &[&str] = &[
@@ -68,7 +68,7 @@ pub fn definitions(readonly: bool) -> Vec<Value> {
         tool(
             "list_servers",
             "List saved servers",
-            "List the servers saved in the anySCP app on this computer (SFTP, FTP and FTPS). \
+            "List the servers saved in the Talktoall Files app on this computer (SFTP, FTP and FTPS). \
              Use a server's name or id with the other tools. Passwords are never exposed. The \
              environment field (for example production) tells you how careful to be.",
             json!({}),
@@ -324,9 +324,9 @@ pub async fn call(ctx: &Ctx, name: &str, a: &Value, progress: &Progress) -> Resu
 fn list_servers(ctx: &Ctx) -> Result<String> {
     let servers = ctx.store.list()?;
     if servers.is_empty() {
-        return Ok("No servers are saved in anySCP yet. Add one in the app first.".into());
+        return Ok("No servers are saved in Talktoall Files yet. Add one in the app first.".into());
     }
-    let mut out = format!("{} servers saved in anySCP:\n", servers.len());
+    let mut out = format!("{} servers saved in Talktoall Files:\n", servers.len());
     for sv in &servers {
         out.push_str(&format!(
             "\n- {} | {} | {}@{}:{}",
@@ -807,7 +807,7 @@ async fn delete(r: &mut dyn Remote, a: &Value) -> Result<String> {
     if path == "/" || path == r.home() {
         bail!(
             "Refusing to delete {path}: it is the server root or the login folder. Delete its \
-             contents item by item, or do it in anySCP if you really mean it."
+             contents item by item, or do it in Talktoall Files if you really mean it."
         );
     }
     let entry = r

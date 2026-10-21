@@ -26,7 +26,7 @@ export function SftpSessionPicker() {
       const msg =
         err && typeof err === "object" && "message" in err
           ? String((err as { message: string }).message)
-          : "Failed to open SFTP session";
+          : "Não foi possível abrir a sessão SFTP";
       setError(msg);
     } finally {
       setOpeningId(null);
@@ -44,10 +44,21 @@ export function SftpSessionPicker() {
     }
   };
 
+  const statusLabel = (status: string) => {
+    switch (status) {
+      case "Connected": return "Conectado";
+      case "Connecting": return "Conectando…";
+      case "Error": return "Erro";
+      case "Disconnecting": return "Desconectando…";
+      case "Disconnected": return "Desconectado";
+      default: return status;
+    }
+  };
+
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full overflow-y-scroll bg-bg-base">
+    <div className="flex flex-col h-full overflow-y-scroll">
       <div className="max-w-lg w-full mx-auto px-8 py-12 flex flex-col gap-6">
 
         {/* Header */}
@@ -56,12 +67,12 @@ export function SftpSessionPicker() {
             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-bg-surface border border-border">
               <FolderOpen size={22} strokeWidth={1.8} className="text-accent" aria-hidden="true" />
             </div>
-            <h1 className="text-[length:var(--text-lg)] font-semibold text-text-primary">
-              File Browser
+            <h1 className="text-[28px] font-bold tracking-tight text-text-primary">
+              Arquivos
             </h1>
           </div>
           <p className="text-[length:var(--text-sm)] text-text-muted">
-            Select an active SSH session to browse its filesystem.
+            Escolha uma sessão SSH ativa para ver os arquivos.
           </p>
         </div>
 
@@ -78,7 +89,7 @@ export function SftpSessionPicker() {
         ) : (
           <div className="flex flex-col gap-2">
             <h2 className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted">
-              Active Sessions
+              Sessões ativas
             </h2>
 
             <div className="flex flex-col gap-1.5">
@@ -112,7 +123,7 @@ export function SftpSessionPicker() {
                           aria-hidden="true"
                         />
                         <span className="text-[length:var(--text-xs)] text-text-muted capitalize">
-                          {session.status}
+                          {statusLabel(session.status)}
                         </span>
                       </div>
                     </div>
@@ -121,8 +132,8 @@ export function SftpSessionPicker() {
                     <button
                       onClick={() => void handleOpenSftp(session.id, session.label, session.hostConfig.username)}
                       disabled={isOpening}
-                      title={`Open SFTP for ${session.label}`}
-                      aria-label={`Open file browser for ${session.label}`}
+                      title={`Abrir SFTP de ${session.label}`}
+                      aria-label={`Abrir arquivos de ${session.label}`}
                       className={[
                         "flex items-center gap-1.5 px-3 py-1.5 rounded-lg shrink-0",
                         "text-[length:var(--text-xs)] font-medium uppercase tracking-wide",
@@ -136,12 +147,12 @@ export function SftpSessionPicker() {
                       {isOpening ? (
                         <>
                           <Loader2 size={13} strokeWidth={2} className="animate-spin" aria-hidden="true" />
-                          Opening…
+                          Abrindo…
                         </>
                       ) : (
                         <>
                           <FolderOpen size={13} strokeWidth={2} aria-hidden="true" />
-                          Open SFTP
+                          Abrir SFTP
                         </>
                       )}
                     </button>
@@ -166,12 +177,12 @@ function EmptyState() {
       </div>
       <div>
         <p className="text-[length:var(--text-sm)] font-medium text-text-secondary">
-          No active SSH sessions
+          Nenhuma sessão SSH ativa
         </p>
         <p className="text-[length:var(--text-xs)] text-text-muted mt-1 max-w-xs">
-          Connect to a host from the{" "}
-          <span className="text-accent font-medium">Hosts</span> page first, then
-          return here to browse files.
+          Conecte-se a um servidor na página{" "}
+          <span className="text-accent font-medium">Servidores</span> e depois
+          volte aqui para ver os arquivos.
         </p>
       </div>
     </div>

@@ -105,13 +105,13 @@ export function PaneHeader({ sessionId, tabId }: PaneHeaderProps) {
       >
         {/* Split horizontal */}
         <button type="button" onClick={() => handleSplit("horizontal")} className={btnClass}
-          aria-label="Split right" title="Split right (⌘D)">
+          aria-label="Dividir à direita" title="Dividir à direita (⌘D)">
           <Columns2 size={13} strokeWidth={1.8} aria-hidden="true" />
         </button>
 
         {/* Split vertical */}
         <button type="button" onClick={() => handleSplit("vertical")} className={btnClass}
-          aria-label="Split down" title="Split down (⇧⌘D)">
+          aria-label="Dividir abaixo" title="Dividir abaixo (⇧⌘D)">
           <Rows2 size={13} strokeWidth={1.8} aria-hidden="true" />
         </button>
 
@@ -126,8 +126,8 @@ export function PaneHeader({ sessionId, tabId }: PaneHeaderProps) {
                 ? "text-accent hover:text-accent-hover hover:bg-accent/10"
                 : "text-text-muted hover:text-text-primary hover:bg-bg-muted",
             ].join(" ")}
-            aria-label={isZoomed ? "Unzoom pane" : "Zoom pane"}
-            title={isZoomed ? "Unzoom (⇧⌘↵)" : "Zoom (⇧⌘↵)"}
+            aria-label={isZoomed ? "Restaurar painel" : "Ampliar painel"}
+            title={isZoomed ? "Restaurar (⇧⌘↵)" : "Ampliar (⇧⌘↵)"}
           >
             {isZoomed ? (
               <Minimize2 size={12} strokeWidth={2} aria-hidden="true" />
@@ -141,7 +141,7 @@ export function PaneHeader({ sessionId, tabId }: PaneHeaderProps) {
         {hasSplits && (
           <button type="button" onClick={handleClose}
             className="inline-flex items-center justify-center w-5 h-5 rounded text-text-muted hover:text-status-error hover:bg-status-error/10 transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            aria-label="Close pane" title="Close pane (⌘W)">
+            aria-label="Fechar painel" title="Fechar painel (⌘W)">
             <X size={12} strokeWidth={2} aria-hidden="true" />
           </button>
         )}

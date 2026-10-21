@@ -1,8 +1,8 @@
 name: Release (Windows)
 
-# Fork build: produces the Windows installers (.msi and .exe) with the
-# anyscp-mcp server bundled next to the app, and attaches them to a GitHub
-# release. Runs on a tag like v0.1.0, on every push to the `release` branch
+# Builds the Talktoall Files Windows installers (.msi and .exe) with the
+# talktoall-files-mcp server bundled next to the app, and attaches them to a
+# GitHub release. Runs on a tag like v0.1.0, on every push to the `release` branch
 # (as the version in package.json), or by hand from the Actions tab.
 
 on:
@@ -64,13 +64,13 @@ jobs:
 
       # The MCP server ships inside the installer as a Tauri sidecar, which
       # must be named with the target triple before bundling.
-      - name: Build anyscp-mcp
+      - name: Build talktoall-files-mcp
         shell: bash
         run: |
           cargo build --release --manifest-path anyscp-mcp/Cargo.toml
           TRIPLE=$(rustc -vV | sed -n 's/host: //p')
           mkdir -p src-tauri/binaries
-          cp anyscp-mcp/target/release/anyscp-mcp.exe "src-tauri/binaries/anyscp-mcp-$TRIPLE.exe"
+          cp anyscp-mcp/target/release/talktoall-files-mcp.exe "src-tauri/binaries/talktoall-files-mcp-$TRIPLE.exe"
 
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
@@ -81,10 +81,11 @@ jobs:
         with:
           args: --config src-tauri/tauri.release.conf.json
           tagName: v${{ steps.version.outputs.version }}
-          releaseName: anySCP + FTP v${{ steps.version.outputs.version }}
+          releaseName: Talktoall Files v${{ steps.version.outputs.version }}
           releaseBody: |
-            Windows build with FTP/FTPS support and the anyscp-mcp server for Claude.
+            Talktoall Files para Windows: SSH, SFTP, FTP e FTPS, com o servidor MCP para o Claude e o Codex.
 
-            Install with the .msi or the -setup.exe below, then open Settings > Claude and click Connect.
+            Instale pelo -setup.exe (ou pelo .msi) abaixo e abra Configurações > Claude e Codex para conectar.
+            Na primeira abertura, os servidores e senhas salvos no anySCP são trazidos automaticamente.
           releaseDraft: false
           prerelease: false

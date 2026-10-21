@@ -35,7 +35,7 @@ function renderToolbar(over: {
   return { onNavigate };
 }
 
-const pathBar = () => screen.getByLabelText("Current path");
+const pathBar = () => screen.getByLabelText("Caminho atual");
 const pathInput = () => screen.getByTestId("explorer-path-input") as HTMLInputElement;
 
 function commitPath(value: string) {
@@ -110,7 +110,7 @@ describe("ExplorerToolbar — editable path bar", () => {
 
   it("segment clicks navigate directly without entering edit mode", () => {
     const { onNavigate } = renderToolbar();
-    fireEvent.click(screen.getByTitle("Navigate to /var"));
+    fireEvent.click(screen.getByTitle("Ir para /var"));
     expect(onNavigate).toHaveBeenCalledWith("/var");
     expect(screen.queryByTestId("explorer-path-input")).toBeNull();
   });

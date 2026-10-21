@@ -28,7 +28,7 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
       const msg =
         err && typeof err === "object" && "message" in err
           ? String((err as { message: string }).message)
-          : "Failed to load groups";
+          : "Não foi possível carregar os grupos";
       set({ error: msg });
     } finally {
       set({ loading: false });

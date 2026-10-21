@@ -1,10 +1,11 @@
 import { useRef, useCallback, useState } from "react";
-import { Monitor, Braces, Settings, ArrowUpDown, Plug, History, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Server, Braces, Settings, ArrowUpDown, Plug, History, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useUiStore } from "../../stores/ui-store";
 import { useTabStore, type PageId } from "../../stores/tab-store";
 import { useTransferStore } from "../../stores/transfer-store";
 import { TransferPopover } from "../transfers/TransferPopover";
 import { getStatusString } from "../../utils/format";
+import { FilesMark } from "../brand";
 
 interface NavItem {
   id: string;
@@ -17,10 +18,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: "hosts",            icon: Monitor,        label: "Hosts",     page: "hosts" },
-  { id: "snippets",         icon: Braces,         label: "Snippets",  page: "snippets" },
-  { id: "port-forwarding",  icon: Plug,           label: "Tunnels",   page: "port-forwarding" },
-  { id: "history",          icon: History,        label: "History",   page: "history" },
+  { id: "hosts",            icon: Server,         label: "Servidores", page: "hosts" },
+  { id: "snippets",         icon: Braces,         label: "Comandos",  page: "snippets" },
+  { id: "port-forwarding",  icon: Plug,           label: "Túneis",    page: "port-forwarding" },
+  { id: "history",          icon: History,        label: "Histórico", page: "history" },
 ];
 
 // ─── Pill button ─────────────────────────────────────────────────────────────
@@ -58,19 +59,19 @@ function PillButton({
         aria-current={isActive ? "page" : undefined}
         aria-expanded={ariaExpanded}
         className={[
-          "relative flex items-center rounded-lg",
+          "relative flex items-center rounded-[12px]",
           "transition-all duration-[var(--duration-fast)]",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          expanded ? "w-full gap-2.5 px-3 h-9" : "justify-center w-9 h-9",
+          expanded ? "w-full gap-2.5 px-3 h-10" : "justify-center w-10 h-10",
           isActive
-            ? "bg-bg-overlay text-text-primary border border-border/60 shadow-[var(--shadow-sm)]"
-            : "text-text-secondary border border-transparent hover:text-text-primary hover:bg-bg-overlay/50",
+            ? "bg-accent text-text-inverse"
+            : "text-text-secondary hover:text-text-primary hover:bg-white/[0.07]",
         ].join(" ")}
       >
         <Icon
-          size={17}
-          strokeWidth={isActive ? 2 : 1.6}
-          className={`shrink-0 ${isActive ? "text-accent" : "text-text-muted"}`}
+          size={18}
+          strokeWidth={1.75}
+          className={`shrink-0 ${isActive ? "text-text-inverse" : "opacity-70"}`}
         />
 
         {/* Label — expanded only */}
@@ -174,16 +175,26 @@ export function Sidebar() {
       <nav
         data-testid="sidebar"
         data-sidebar-expanded={expanded}
-        aria-label="Main navigation"
+        aria-label="Navegação principal"
         className={[
-          "no-select flex flex-col shrink-0 h-[calc(100%-16px)] py-3 ml-2 mt-2",
-          "bg-bg-surface border border-border/60 rounded-lg",
+          "no-select flex flex-col shrink-0 h-[calc(100%-16px)] py-4 ml-2 mt-2",
+          "bg-white/[0.05] backdrop-blur-sm rounded-[18px]",
           "transition-[width] duration-[var(--duration-base)] ease-[var(--ease-expo-out)]",
-          expanded ? "w-[208px] items-stretch px-3" : "w-[48px] items-center",
+          expanded ? "w-[208px] items-stretch px-3" : "w-[64px] items-center",
         ].join(" ")}
       >
+        {/* Brand */}
+        <div className={`flex items-center gap-2.5 mb-5 ${expanded ? "px-1" : "justify-center"}`}>
+          <FilesMark size={32} />
+          {expanded && (
+            <span className="text-[length:var(--text-base)] font-bold text-text-primary truncate">
+              Files
+            </span>
+          )}
+        </div>
+
         {/* Nav items */}
-        <div className={`flex flex-col gap-1 ${expanded ? "" : "items-center"}`}>
+        <div className={`flex flex-col gap-2 ${expanded ? "" : "items-center"}`}>
           {visibleNavItems.map((item) => (
             <PillButton
               key={item.id}
@@ -201,10 +212,10 @@ export function Sidebar() {
         <div className="flex-1" />
 
         {/* Bottom actions */}
-        <div className={`flex flex-col gap-1 ${expanded ? "" : "items-center"}`}>
+        <div className={`flex flex-col gap-2 ${expanded ? "" : "items-center"}`}>
           <PillButton
             icon={ArrowUpDown}
-            label="Transfers"
+            label="Transferências"
             isActive={popoverOpen}
             badge={activeTransferCount || undefined}
             expanded={expanded}
@@ -215,16 +226,16 @@ export function Sidebar() {
 
           <PillButton
             icon={Settings}
-            label="Settings"
+            label="Configurações"
             isActive={activeNavId === "settings"}
             expanded={expanded}
-            onClick={() => openPageTab("settings", "Settings")}
+            onClick={() => openPageTab("settings", "Configurações")}
           />
 
           {/* Expand/collapse */}
           <PillButton
             icon={expanded ? ChevronsLeft : ChevronsRight}
-            label={expanded ? "Collapse" : "Expand"}
+            label={expanded ? "Recolher" : "Expandir"}
             isActive={false}
             expanded={expanded}
             onClick={toggleSidebar}

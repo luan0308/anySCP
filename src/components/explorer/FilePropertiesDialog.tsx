@@ -38,8 +38,8 @@ function locationOf(id: string): string {
 }
 
 // Rows: Owner / Group / Other; columns: Read / Write / Execute.
-const ROW_LABELS = ["Owner", "Group", "Other"] as const;
-const COL_LABELS = ["Read", "Write", "Execute"] as const;
+const ROW_LABELS = ["Dono", "Grupo", "Outros"] as const;
+const COL_LABELS = ["Leitura", "Escrita", "Execução"] as const;
 const ROW_KEYS: ReadonlyArray<ReadonlyArray<keyof PermissionBits>> = [
   ["ownerR", "ownerW", "ownerX"],
   ["groupR", "groupW", "groupX"],
@@ -153,9 +153,13 @@ export function FilePropertiesDialog({
       // summary and keep the dialog open when some entries failed; otherwise
       // close as for a normal apply.
       if (result && result.errors.length > 0) {
-        const appliedPart = result.applied > 0 ? ` to ${result.applied} item(s)` : "";
+        const appliedPart =
+          result.applied > 0
+            ? ` em ${result.applied} ${result.applied === 1 ? "item" : "itens"}`
+            : "";
+        const errorCount = result.errors.length;
         setError(
-          `Applied${appliedPart}, ${result.errors.length} error(s). ${result.errors[0]}`,
+          `Aplicado${appliedPart}, ${errorCount} ${errorCount === 1 ? "erro" : "erros"}. ${result.errors[0]}`,
         );
       } else {
         onClose();
@@ -166,7 +170,7 @@ export function FilePropertiesDialog({
           ? String((err as { message: string }).message)
           : err instanceof Error
             ? err.message
-            : "Failed to change permissions";
+            : "Não foi possível alterar as permissões";
       setError(msg);
     } finally {
       setApplying(false);
@@ -186,7 +190,9 @@ export function FilePropertiesDialog({
   const copyPath = () => void navigator.clipboard.writeText(entry.id);
 
   const modified =
-    entry.modified !== null ? new Date(entry.modified * 1000).toLocaleString() : "—";
+    entry.modified !== null
+      ? new Date(entry.modified * 1000).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
+      : "–";
   const location = locationOf(entry.id);
 
   const labelClass = "text-[length:var(--text-xs)] text-text-muted w-[76px] shrink-0";
@@ -200,7 +206,7 @@ export function FilePropertiesDialog({
     >
       <div
         role="dialog"
-        aria-label={`Properties for ${entry.name}`}
+        aria-label={`Propriedades de ${entry.name}`}
         data-testid="file-properties-dialog"
         className="w-full max-w-[380px] mx-4 rounded-xl bg-bg-overlay border border-border shadow-[var(--shadow-lg)] animate-[fadeIn_120ms_var(--ease-expo-out)_both]"
       >
@@ -222,7 +228,7 @@ export function FilePropertiesDialog({
           <button
             onClick={onClose}
             disabled={applying}
-            aria-label="Close"
+            aria-label="Fechar"
             className="flex items-center justify-center w-6 h-6 rounded-md shrink-0 text-text-muted hover:text-text-primary hover:bg-bg-subtle transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
           >
             <X size={14} strokeWidth={2} aria-hidden="true" />
@@ -232,35 +238,35 @@ export function FilePropertiesDialog({
         {/* File info */}
         <div className="flex flex-col gap-0 px-4 py-3">
           <div className="flex items-baseline gap-3 py-1">
-            <span className={labelClass}>Type</span>
+            <span className={labelClass}>Tipo</span>
             <span className={valueClass}>
-              {entry.isSymlink ? "Symlink" : isDir ? "Directory" : "File"}
+              {entry.isSymlink ? "Link simbólico" : isDir ? "Pasta" : "Arquivo"}
             </span>
           </div>
 
           {!isDir && (
             <div className="flex items-baseline gap-3 py-1">
-              <span className={labelClass}>Size</span>
+              <span className={labelClass}>Tamanho</span>
               <span className={valueClass}>{formatBytes(entry.size)}</span>
             </div>
           )}
 
           <div className="flex items-baseline gap-3 py-1">
-            <span className={labelClass}>Location</span>
+            <span className={labelClass}>Local</span>
             <span className={`${valueClass} font-mono text-[length:var(--text-2xs)]`} title={location}>
               {location}
             </span>
           </div>
 
           <div className="flex items-baseline gap-3 py-1">
-            <span className={labelClass}>Path</span>
+            <span className={labelClass}>Caminho</span>
             <span className={`${valueClass} font-mono text-[length:var(--text-2xs)]`} title={entry.id}>
               {entry.id}
             </span>
             <button
               onClick={copyPath}
-              title="Copy path"
-              aria-label="Copy path"
+              title="Copiar caminho"
+              aria-label="Copiar caminho"
               className="shrink-0 p-1 rounded text-text-muted hover:text-text-primary hover:bg-bg-subtle transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Copy size={12} strokeWidth={2} aria-hidden="true" />
@@ -268,13 +274,13 @@ export function FilePropertiesDialog({
           </div>
 
           <div className="flex items-baseline gap-3 py-1">
-            <span className={labelClass}>Modified</span>
+            <span className={labelClass}>Modificado</span>
             <span className={valueClass}>{modified}</span>
           </div>
 
           {capabilities.hasStorageClass && entry.storageClass && (
             <div className="flex items-baseline gap-3 py-1">
-              <span className={labelClass}>Class</span>
+              <span className={labelClass}>Classe</span>
               <span className={valueClass}>{entry.storageClass}</span>
             </div>
           )}
@@ -285,10 +291,10 @@ export function FilePropertiesDialog({
           <div className="px-4 py-3 border-t border-border">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[length:var(--text-xs)] font-semibold uppercase tracking-wide text-text-muted">
-                Permissions
+                Permissões
               </span>
               {entry.isSymlink && (
-                <span className="text-[length:var(--text-2xs)] text-text-muted">read-only (symlink)</span>
+                <span className="text-[length:var(--text-2xs)] text-text-muted">somente leitura (link simbólico)</span>
               )}
             </div>
 
@@ -296,9 +302,9 @@ export function FilePropertiesDialog({
               <thead>
                 <tr className="text-text-muted">
                   <th className="text-left font-medium w-16" />
-                  <th className="font-medium py-1">Read</th>
-                  <th className="font-medium py-1">Write</th>
-                  <th className="font-medium py-1">Execute</th>
+                  <th className="font-medium py-1">{COL_LABELS[0]}</th>
+                  <th className="font-medium py-1">{COL_LABELS[1]}</th>
+                  <th className="font-medium py-1">{COL_LABELS[2]}</th>
                 </tr>
               </thead>
               <tbody>
@@ -314,7 +320,7 @@ export function FilePropertiesDialog({
                           disabled={!canEditPermissions}
                           onChange={() => toggleBit(key)}
                           className="h-3.5 w-3.5 cursor-pointer accent-accent disabled:cursor-not-allowed disabled:opacity-50"
-                          aria-label={`${rowLabel} ${COL_LABELS[c]}`}
+                          aria-label={`${COL_LABELS[c]} (${rowLabel})`}
                         />
                       </td>
                     ))}
@@ -334,7 +340,7 @@ export function FilePropertiesDialog({
                 onChange={(e) => handleOctalInput(e.target.value)}
                 onBlur={handleOctalBlur}
                 className="w-16 px-2 py-1 rounded-md font-mono text-center text-[length:var(--text-sm)] text-text-primary bg-bg-base border border-border outline-none focus:border-border-focus focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Octal permissions"
+                aria-label="Permissões em octal"
               />
               <span className="font-mono text-[length:var(--text-2xs)] text-text-muted">
                 {/* rwx preview, live */}
@@ -348,10 +354,10 @@ export function FilePropertiesDialog({
                 data-testid="perm-special-bits"
                 className="mt-2 text-[length:var(--text-2xs)] text-text-muted"
               >
-                Special bits set ({specialBitsLabel}); not editable here and{" "}
+                Bits especiais ativos ({specialBitsLabel}). Não dá para editar aqui e{" "}
                 {recursive && isDir
-                  ? "dropped on a recursive apply."
-                  : "preserved on apply."}
+                  ? "eles serão descartados ao aplicar de forma recursiva."
+                  : "eles serão mantidos ao aplicar."}
               </p>
             )}
 
@@ -366,7 +372,7 @@ export function FilePropertiesDialog({
                   onChange={(e) => setRecursive(e.target.checked)}
                   className="h-3.5 w-3.5 cursor-pointer accent-accent disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                Apply permissions recursively to all contents
+                Aplicar as permissões a todo o conteúdo (recursivo)
               </label>
             )}
           </div>
@@ -393,7 +399,7 @@ export function FilePropertiesDialog({
             disabled={applying}
             className="px-4 py-2 text-[length:var(--text-sm)] text-text-secondary hover:text-text-primary rounded-lg transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
           >
-            {canEditPermissions ? "Cancel" : "Close"}
+            {canEditPermissions ? "Cancelar" : "Fechar"}
           </button>
           {canEditPermissions && (
             <button
@@ -403,7 +409,7 @@ export function FilePropertiesDialog({
               className="flex items-center gap-1.5 px-4 py-2 text-[length:var(--text-sm)] font-medium text-white bg-accent hover:opacity-90 rounded-lg transition-opacity duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {applying && <Loader2 size={14} strokeWidth={2} className="animate-spin" aria-hidden="true" />}
-              Apply
+              Aplicar
             </button>
           )}
         </div>

@@ -84,26 +84,26 @@ export function PortForwardingPage() {
 
     if (isActive) {
       items.push({
-        label: "Stop Tunnel",
+        label: "Parar túnel",
         onClick: () => void stopTunnel(rule.id),
       });
     } else {
       items.push({
-        label: "Start Tunnel",
+        label: "Iniciar túnel",
         disabled: !rule.host_id,
         onClick: () => { if (rule.host_id) void startTunnel(rule.id, rule.host_id, rule); },
       });
     }
 
     items.push({
-      label: "Edit",
+      label: "Editar",
       icon: Pencil,
       separator: true,
       onClick: () => setEditingRule(rule),
     });
 
     items.push({
-      label: "Delete",
+      label: "Excluir",
       icon: Trash2,
       danger: true,
       onClick: () => setDeletingRule(rule),
@@ -114,13 +114,13 @@ export function PortForwardingPage() {
 
   return (
     <>
-      <div className="flex flex-col h-full overflow-y-scroll bg-bg-base">
+      <div className="flex flex-col h-full overflow-y-scroll">
         <div className="max-w-4xl w-full mx-auto px-8 py-8 flex flex-col gap-8">
 
           {/* ── Page title ── */}
           <div>
-            <h1 className="text-[length:var(--text-lg)] font-semibold text-text-primary">Tunnels</h1>
-            <p className="text-[length:var(--text-xs)] text-text-muted mt-1">Forward local ports to remote services through SSH tunnels for secure database, API, and service access</p>
+            <h1 className="text-[28px] font-bold tracking-tight text-text-primary">Túneis</h1>
+            <p className="text-[length:var(--text-xs)] text-text-muted mt-1">Redirecione portas locais para serviços no servidor por túneis SSH, com acesso seguro a bancos de dados, APIs e outros serviços</p>
           </div>
 
           {/* ── Search bar ── */}
@@ -136,8 +136,8 @@ export function PortForwardingPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Escape") setQuery(""); }}
-              placeholder="Search rules..."
-              aria-label="Search forwarding rules"
+              placeholder="Buscar regras…"
+              aria-label="Buscar regras de redirecionamento"
               className={[
                 "w-full pl-10 pr-4 py-2.5 rounded-xl text-[length:var(--text-sm)]",
                 "bg-bg-surface border border-border text-text-primary placeholder:text-text-muted",
@@ -159,10 +159,10 @@ export function PortForwardingPage() {
                 "transition-all duration-[var(--duration-fast)]",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               ].join(" ")}
-              title="New Rule"
+              title="Nova regra"
             >
               <Plus size={14} strokeWidth={2.2} aria-hidden="true" />
-              New Rule
+              Nova regra
             </button>
           </div>
 
@@ -171,7 +171,7 @@ export function PortForwardingPage() {
             grouped.map((group) => {
               const hostLabel = group.host
                 ? (group.host.label || `${group.host.username}@${group.host.host}`)
-                : "Standalone";
+                : "Sem servidor";
 
               return (
                 <section key={group.host?.id ?? "__standalone__"} aria-labelledby={`pf-group-${group.host?.id ?? "standalone"}`}>
@@ -218,13 +218,13 @@ export function PortForwardingPage() {
                               "bg-bg-muted",
                             ].join(" ")} />
                             <span className="text-[length:var(--text-sm)] font-medium text-text-primary truncate flex-1">
-                              {rule.label || `Port ${rule.local_port}`}
+                              {rule.label || `Porta ${rule.local_port}`}
                             </span>
 
                             <button
                               role="switch"
                               aria-checked={isActive}
-                              aria-label={isActive ? "Stop tunnel" : "Start tunnel"}
+                              aria-label={isActive ? "Parar túnel" : "Iniciar túnel"}
                               disabled={isStarting || (!isActive && !rule.host_id)}
                               onClick={() => {
                                 if (isActive) {
@@ -261,8 +261,8 @@ export function PortForwardingPage() {
                                 e.stopPropagation();
                                 void navigator.clipboard.writeText(`localhost:${tunnel?.local_port ?? rule.local_port}`);
                               }}
-                              title="Copy localhost address"
-                              aria-label="Copy localhost address"
+                              title="Copiar endereço localhost"
+                              aria-label="Copiar endereço localhost"
                               className="p-0.5 rounded text-text-muted/0 group-hover:text-text-muted hover:!text-text-primary transition-all duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               <Copy size={11} strokeWidth={2} />
@@ -272,12 +272,12 @@ export function PortForwardingPage() {
                           {/* Meta: connections, last used */}
                           <div className="flex items-center gap-2 text-[length:var(--text-2xs)] text-text-muted/60">
                             {isActive && tunnel && tunnel.connections > 0 && (
-                              <span>{tunnel.connections} conn</span>
+                              <span>{tunnel.connections} {tunnel.connections === 1 ? "conexão" : "conexões"}</span>
                             )}
                             {rule.last_used_at && !isActive && (
                               <span className="flex items-center gap-1">
                                 <Clock size={10} strokeWidth={2} />
-                                {new Date(rule.last_used_at).toLocaleDateString()}
+                                {new Date(rule.last_used_at).toLocaleDateString("pt-BR")}
                               </span>
                             )}
                             {rule.auto_start && (
@@ -302,16 +302,16 @@ export function PortForwardingPage() {
             })
           ) : rules.length > 0 && query.trim() ? (
             <p className="text-[length:var(--text-sm)] text-text-muted py-8 text-center">
-              No rules match &ldquo;{query}&rdquo;
+              Nenhuma regra encontrada para &ldquo;{query}&rdquo;
             </p>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <Wifi size={30} strokeWidth={1.2} className="text-text-muted/30" />
               <p className="text-[length:var(--text-sm)] text-text-muted">
-                No forwarding rules yet
+                Nenhuma regra de redirecionamento ainda
               </p>
               <p className="text-[length:var(--text-xs)] text-text-muted/60 text-center max-w-xs">
-                Forward local ports to remote services through SSH tunnels
+                Redirecione portas locais para serviços no servidor por túneis SSH
               </p>
             </div>
           )}
@@ -357,8 +357,8 @@ export function PortForwardingPage() {
 
       <ConfirmDangerDialog
         open={deletingRule !== null}
-        title="Delete this tunnel rule?"
-        message="This tunnel rule will be permanently removed."
+        title="Excluir esta regra de túnel?"
+        message="Esta regra de túnel será removida para sempre."
         onCancel={() => setDeletingRule(null)}
         onConfirm={() => {
           const rule = deletingRule;
@@ -454,26 +454,26 @@ function RuleDialog({
     <ModalShell
       open
       onClose={onCancel}
-      title={isEdit ? "Edit Rule" : "New Rule"}
+      title={isEdit ? "Editar regra" : "Nova regra"}
       icon={Plug}
       maxWidth="lg"
       scrollable
       testId="rule-dialog"
       footer={
         <>
-          <button type="button" onClick={onCancel} className={BTN_GHOST}>Cancel</button>
+          <button type="button" onClick={onCancel} className={BTN_GHOST}>Cancelar</button>
           <button form="rule-dialog-form" type="submit" data-testid="rule-dialog-save" disabled={!canSubmit} className={BTN_PRIMARY}>
-            {isEdit ? "Save" : "Create"}
+            {isEdit ? "Salvar" : "Criar"}
           </button>
         </>
       }
     >
         <form id="rule-dialog-form" onSubmit={handleSubmit} className="flex flex-col gap-3.5">
-          <SectionHeader>Connection</SectionHeader>
+          <SectionHeader>Conexão</SectionHeader>
 
           {/* Host */}
           <div>
-            <label htmlFor="pf-host" className={labelClass}>Host</label>
+            <label htmlFor="pf-host" className={labelClass}>Servidor</label>
             {hosts.length > 0 ? (
               <CustomSelect
                 id="pf-host"
@@ -487,7 +487,7 @@ function RuleDialog({
               />
             ) : (
               <p className="text-[length:var(--text-xs)] text-text-muted py-1.5">
-                No saved hosts. Add a host first.
+                Nenhum servidor salvo. Adicione um servidor primeiro.
               </p>
             )}
           </div>
@@ -495,8 +495,8 @@ function RuleDialog({
           {/* Label */}
           <div>
             <label htmlFor="pf-label" className={labelClass}>
-              Label
-              <span className="ml-1 text-text-muted font-normal">(optional)</span>
+              Nome
+              <span className="ml-1 text-text-muted font-normal">(opcional)</span>
             </label>
             <input
               id="pf-label"
@@ -504,7 +504,7 @@ function RuleDialog({
               type="text"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              placeholder="My Database"
+              placeholder="Meu banco de dados"
               className={inputClass}
             />
           </div>
@@ -512,20 +512,20 @@ function RuleDialog({
           {/* Description */}
           <div>
             <label htmlFor="pf-desc" className={labelClass}>
-              Description
-              <span className="ml-1 text-text-muted font-normal">(optional)</span>
+              Descrição
+              <span className="ml-1 text-text-muted font-normal">(opcional)</span>
             </label>
             <textarea
               id="pf-desc"
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Production read replica for analytics..."
+              placeholder="Réplica de leitura de produção para relatórios…"
               className={`${inputClass} resize-none`}
             />
           </div>
 
-          <SectionHeader>Ports</SectionHeader>
+          <SectionHeader>Portas</SectionHeader>
 
           {/* Preset buttons */}
           {!isEdit && (
@@ -552,7 +552,7 @@ function RuleDialog({
           {/* Port inputs */}
           <div className="flex gap-3 items-end">
             <div className="flex-1">
-              <label htmlFor="pf-local-port" className={labelClass}>Local Port</label>
+              <label htmlFor="pf-local-port" className={labelClass}>Porta local</label>
               <input
                 id="pf-local-port"
                 data-testid="rule-local-port"
@@ -569,7 +569,7 @@ function RuleDialog({
             <ArrowRight size={15} strokeWidth={2} className="text-text-muted/40 mb-3 shrink-0" />
 
             <div className="flex-1">
-              <label htmlFor="pf-remote-port" className={labelClass}>Remote Port</label>
+              <label htmlFor="pf-remote-port" className={labelClass}>Porta no servidor</label>
               <input
                 id="pf-remote-port"
                 data-testid="rule-remote-port"
@@ -584,18 +584,18 @@ function RuleDialog({
             </div>
           </div>
 
-          <SectionHeader>Options</SectionHeader>
+          <SectionHeader>Opções</SectionHeader>
 
           {/* Bind address */}
           <div>
-            <label htmlFor="pf-bind" className={labelClass}>Bind Address</label>
+            <label htmlFor="pf-bind" className={labelClass}>Endereço de escuta</label>
             <CustomSelect
               id="pf-bind"
               value={bindAddress}
               onChange={setBindAddress}
               options={[
-                { value: "127.0.0.1", label: "127.0.0.1 (local only)" },
-                { value: "0.0.0.0", label: "0.0.0.0 (all interfaces)" },
+                { value: "127.0.0.1", label: "127.0.0.1 (só esta máquina)" },
+                { value: "0.0.0.0", label: "0.0.0.0 (todas as interfaces)" },
               ]}
             />
           </div>
@@ -603,8 +603,8 @@ function RuleDialog({
           {/* Auto-start */}
           <div className="flex items-center justify-between gap-3">
             <div>
-              <span className={labelClass}>Auto-start</span>
-              <p className="text-[length:var(--text-2xs)] text-text-muted">Start tunnel when host connects</p>
+              <span className={labelClass}>Iniciar automaticamente</span>
+              <p className="text-[length:var(--text-2xs)] text-text-muted">Inicia o túnel quando o servidor conectar</p>
             </div>
             <button
               type="button"

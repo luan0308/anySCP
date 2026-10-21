@@ -1,7 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "bundle": {
-    "externalBin": ["binaries/anyscp-mcp"],
+    "externalBin": [
+      "binaries/talktoall-files-mcp"
+    ],
     "createUpdaterArtifacts": false
   }
 }

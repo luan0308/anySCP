@@ -44,7 +44,7 @@ export function pageTabId(page: PageId): string {
 
 export const useTabStore = create<TabState>((set, get) => ({
   tabs: new Map<string, UnifiedTab>([
-    [pageTabId("hosts"), { type: "page", id: pageTabId("hosts"), label: "Hosts", page: "hosts" }],
+    [pageTabId("hosts"), { type: "page", id: pageTabId("hosts"), label: "Servidores", page: "hosts" }],
   ]),
   tabOrder: [pageTabId("hosts")],
   activeTabId: pageTabId("hosts"),
@@ -76,7 +76,7 @@ export const useTabStore = create<TabState>((set, get) => ({
         // Ensure hosts tab exists as fallback
         if (!tabs.has(activeTabId)) {
           const hostsId = pageTabId("hosts");
-          const hostsTab: UnifiedTab = { type: "page", id: hostsId, label: "Hosts", page: "hosts" };
+          const hostsTab: UnifiedTab = { type: "page", id: hostsId, label: "Servidores", page: "hosts" };
           tabs.set(hostsId, hostsTab);
           if (!tabOrder.includes(hostsId)) tabOrder.push(hostsId);
           activeTabId = hostsId;

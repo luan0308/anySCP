@@ -34,7 +34,7 @@ export function SnippetFolderCard({
 
   const contextItems = [
     {
-      label: "Delete Folder",
+      label: "Excluir pasta",
       icon: Trash2,
       danger: true,
       onClick: () => setConfirmDelete(true),
@@ -78,7 +78,7 @@ export function SnippetFolderCard({
             {folder.name}
           </p>
           <p className="text-[length:var(--text-xs)] text-text-muted mt-0.5">
-            {snippetCount === 1 ? "1 snippet" : `${snippetCount} snippets`}
+            {snippetCount === 1 ? "1 comando" : `${snippetCount} comandos`}
           </p>
         </div>
       </button>
@@ -93,8 +93,8 @@ export function SnippetFolderCard({
 
       <ConfirmDangerDialog
         open={confirmDelete}
-        title="Delete this folder?"
-        message="This folder will be permanently removed."
+        title="Excluir esta pasta?"
+        message="Esta pasta será removida permanentemente."
         onCancel={() => setConfirmDelete(false)}
         onConfirm={() => {
           setConfirmDelete(false);

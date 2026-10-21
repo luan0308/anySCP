@@ -190,9 +190,9 @@ export function TerminalSearchBar({ sessionId }: TerminalSearchBarProps) {
   const matchText = !query
     ? ""
     : results && results.count > 0
-      ? `${results.index} of ${results.count}`
+      ? `${results.index} de ${results.count}`
       : query
-        ? "No results"
+        ? "Nenhum resultado"
         : "";
 
   return (
@@ -217,8 +217,8 @@ export function TerminalSearchBar({ sessionId }: TerminalSearchBarProps) {
         value={query}
         onChange={(e) => handleInput(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Find"
-        aria-label="Search terminal"
+        placeholder="Buscar…"
+        aria-label="Buscar no terminal"
         className={[
           "w-[160px] px-2 py-1 rounded text-[length:var(--text-xs)]",
           "bg-bg-base border border-border text-text-primary placeholder:text-text-muted",
@@ -237,8 +237,8 @@ export function TerminalSearchBar({ sessionId }: TerminalSearchBarProps) {
       {/* Prev / Next */}
       <button
         onClick={handlePrev}
-        title="Previous match (Shift+Enter)"
-        aria-label="Previous match"
+        title="Ocorrência anterior (Shift+Enter)"
+        aria-label="Ocorrência anterior"
         disabled={!query || !results?.count}
         className={`${BTN_CLASS} text-text-muted hover:text-text-primary hover:bg-bg-subtle disabled:opacity-30`}
       >
@@ -246,8 +246,8 @@ export function TerminalSearchBar({ sessionId }: TerminalSearchBarProps) {
       </button>
       <button
         onClick={handleNext}
-        title="Next match (Enter)"
-        aria-label="Next match"
+        title="Próxima ocorrência (Enter)"
+        aria-label="Próxima ocorrência"
         disabled={!query || !results?.count}
         className={`${BTN_CLASS} text-text-muted hover:text-text-primary hover:bg-bg-subtle disabled:opacity-30`}
       >
@@ -260,8 +260,8 @@ export function TerminalSearchBar({ sessionId }: TerminalSearchBarProps) {
       {/* Toggles */}
       <button
         onClick={toggleCaseSensitive}
-        title="Match case"
-        aria-label="Toggle case sensitivity"
+        title="Diferenciar maiúsculas e minúsculas"
+        aria-label="Alternar diferenciação de maiúsculas e minúsculas"
         aria-pressed={caseSensitive}
         className={`${BTN_CLASS} ${caseSensitive ? "text-accent bg-accent/10" : "text-text-muted hover:text-text-primary hover:bg-bg-subtle"}`}
       >
@@ -269,8 +269,8 @@ export function TerminalSearchBar({ sessionId }: TerminalSearchBarProps) {
       </button>
       <button
         onClick={toggleRegex}
-        title="Use regex"
-        aria-label="Toggle regex"
+        title="Usar expressão regular"
+        aria-label="Alternar expressão regular"
         aria-pressed={regex}
         className={`${BTN_CLASS} ${regex ? "text-accent bg-accent/10" : "text-text-muted hover:text-text-primary hover:bg-bg-subtle"}`}
       >
@@ -283,8 +283,8 @@ export function TerminalSearchBar({ sessionId }: TerminalSearchBarProps) {
       {/* Close */}
       <button
         onClick={handleClose}
-        title="Close (Escape)"
-        aria-label="Close search"
+        title="Fechar (Esc)"
+        aria-label="Fechar busca"
         className={`${BTN_CLASS} text-text-muted hover:text-text-primary hover:bg-bg-subtle`}
       >
         <X size={14} strokeWidth={2} aria-hidden="true" />

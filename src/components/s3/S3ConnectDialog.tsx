@@ -115,7 +115,7 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
     } catch (err) {
       const msg = err && typeof err === "object" && "message" in err
         ? String((err as { message: string }).message)
-        : "Save failed";
+        : "Não foi possível salvar";
       setError(msg);
     } finally {
       setSaving(false);
@@ -146,7 +146,7 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
     } catch (err) {
       const msg = err && typeof err === "object" && "message" in err
         ? String((err as { message: string }).message)
-        : "Connection failed";
+        : "Falha na conexão";
       setError(msg);
     } finally {
       setConnecting(false);
@@ -163,7 +163,7 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
     <ModalShell
       open
       onClose={onClose}
-      title={isEdit ? "Edit Connection" : "Connect to S3"}
+      title={isEdit ? "Editar conexão" : "Conectar ao S3"}
       icon={Cloud}
       maxWidth="lg"
       scrollable
@@ -172,19 +172,19 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
       footer={
         <>
           <button type="button" onClick={onClose} disabled={connecting || saving} className={BTN_GHOST}>
-            Cancel
+            Cancelar
           </button>
           {isEdit ? (
             <button type="button" onClick={() => void handleSave()} disabled={saving || !canSubmit} className={BTN_PRIMARY}>
-              {saving ? "Saving…" : "Save Changes"}
+              {saving ? "Salvando…" : "Salvar alterações"}
             </button>
           ) : (
             <>
               <button type="button" data-testid="s3-dialog-save" onClick={() => void handleSave()} disabled={saving || connecting || !canSubmit} className={BTN_SECONDARY}>
-                {saving ? "Saving…" : "Save"}
+                {saving ? "Salvando…" : "Salvar"}
               </button>
               <button type="button" data-testid="s3-dialog-connect" onClick={() => void handleConnect()} disabled={connecting || saving || !canSubmit} className={BTN_PRIMARY}>
-                {connecting ? "Connecting…" : "Connect"}
+                {connecting ? "Conectando…" : "Conectar"}
               </button>
             </>
           )}
@@ -192,10 +192,10 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
       }
     >
         <div className="flex flex-col gap-3.5">
-          <SectionHeader>Provider</SectionHeader>
+          <SectionHeader>Provedor</SectionHeader>
 
           <div>
-            <label className={labelClass}>Service</label>
+            <label className={labelClass}>Serviço</label>
             <CustomSelect
               data-testid="s3-dialog-provider"
               value={provider}
@@ -206,30 +206,30 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
 
           <div>
             <label className={labelClass}>
-              Label
-              <span className="ml-1 text-text-muted font-normal">(optional)</span>
+              Nome
+              <span className="ml-1 text-text-muted font-normal">(opcional)</span>
             </label>
             <input
               data-testid="s3-dialog-label"
               type="text"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              placeholder="My S3 Bucket"
+              placeholder="Meu bucket S3"
               className={inputClass}
               autoFocus
             />
           </div>
 
-          <SectionHeader>Credentials</SectionHeader>
+          <SectionHeader>Credenciais</SectionHeader>
 
           {isEdit && (
             <p className="text-[length:var(--text-2xs)] text-text-muted -mb-1">
-              Leave blank to keep existing credentials
+              Deixe em branco para manter as credenciais atuais
             </p>
           )}
 
           <div>
-            <label className={labelClass}>Access Key ID</label>
+            <label className={labelClass}>ID da chave de acesso</label>
             <input
               data-testid="s3-dialog-access-key"
               type="text"
@@ -241,7 +241,7 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
           </div>
 
           <div>
-            <label className={labelClass}>Secret Access Key</label>
+            <label className={labelClass}>Chave de acesso secreta</label>
             <input
               data-testid="s3-dialog-secret-key"
               type="password"
@@ -252,11 +252,11 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
             />
           </div>
 
-          <SectionHeader>Connection</SectionHeader>
+          <SectionHeader>Conexão</SectionHeader>
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className={labelClass}>Region</label>
+              <label className={labelClass}>Região</label>
               <input
                 data-testid="s3-dialog-region"
                 type="text"
@@ -273,7 +273,7 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
                 type="text"
                 value={bucket}
                 onChange={(e) => setBucket(e.target.value)}
-                placeholder="my-bucket"
+                placeholder="meu-bucket"
                 className={`${inputClass} font-mono`}
               />
             </div>
@@ -281,7 +281,7 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
 
           {(provider !== "aws") && (
             <div>
-              <label className={labelClass}>Endpoint URL</label>
+              <label className={labelClass}>URL do endpoint</label>
               <input
                 data-testid="s3-dialog-endpoint"
                 type="text"
@@ -293,17 +293,17 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
             </div>
           )}
 
-          <SectionHeader>Appearance</SectionHeader>
+          <SectionHeader>Aparência</SectionHeader>
 
           {groups.length > 0 && (
             <div>
-              <label className={labelClass}>Group</label>
+              <label className={labelClass}>Grupo</label>
               <CustomSelect
                 value={groupId}
                 onChange={setGroupId}
-                placeholder="No group"
+                placeholder="Sem grupo"
                 options={[
-                  { value: "", label: "No group" },
+                  { value: "", label: "Sem grupo" },
                   ...groups.map((g) => ({ value: g.id, label: g.name })),
                 ]}
               />
@@ -312,22 +312,22 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className={labelClass}>Environment</label>
+              <label className={labelClass}>Ambiente</label>
               <CustomSelect
                 value={environment}
                 onChange={setEnvironment}
-                placeholder="None"
+                placeholder="Nenhum"
                 options={[
-                  { value: "", label: "None" },
-                  { value: "production", label: "Production" },
-                  { value: "staging", label: "Staging" },
-                  { value: "dev", label: "Dev" },
-                  { value: "testing", label: "Testing" },
+                  { value: "", label: "Nenhum" },
+                  { value: "production", label: "Produção" },
+                  { value: "staging", label: "Homologação" },
+                  { value: "dev", label: "Desenvolvimento" },
+                  { value: "testing", label: "Testes" },
                 ]}
               />
             </div>
             <div className="flex-1">
-              <label className={labelClass}>Color</label>
+              <label className={labelClass}>Cor</label>
               <div className="flex gap-1.5 py-2">
                 {["#6366f1", "#8b5cf6", "#ec4899", "#f43f5e", "#f97316", "#eab308", "#22c55e", "#06b6d4"].map((c) => (
                   <button
@@ -340,25 +340,25 @@ export function S3ConnectDialog({ onClose, editConnection }: S3ConnectDialogProp
                       color === c ? "border-text-primary scale-110" : "border-transparent hover:scale-110",
                     ].join(" ")}
                     style={{ background: c }}
-                    aria-label={`Color ${c}`}
+                    aria-label={`Cor ${c}`}
                   />
                 ))}
               </div>
             </div>
           </div>
 
-          <SectionHeader>Notes</SectionHeader>
+          <SectionHeader>Observações</SectionHeader>
 
           <div>
             <label className={labelClass}>
-              Notes
-              <span className="ml-1 text-text-muted font-normal">(optional)</span>
+              Observações
+              <span className="ml-1 text-text-muted font-normal">(opcional)</span>
             </label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Notes about this connection..."
+              placeholder="Observações sobre esta conexão…"
               className={`${inputClass} resize-none`}
             />
           </div>

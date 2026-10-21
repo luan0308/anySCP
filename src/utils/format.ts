@@ -1,23 +1,28 @@
+/** Format a number with a fixed number of decimals using the pt-BR comma. */
+function fixedPtBr(value: number, digits: number): string {
+  return value.toFixed(digits).replace(".", ",");
+}
+
 /**
  * Format a byte count to a human-readable string.
- * Examples: 0 → "0 B", 1024 → "1.0 KB", 1048576 → "1.0 MB"
+ * Examples: 0 → "0 B", 1024 → "1,0 KB", 1048576 → "1,0 MB"
  */
 export function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 B";
   const k = 1024;
   const sizes = ["B", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${(bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0)} ${sizes[i]}`;
+  return `${fixedPtBr(bytes / Math.pow(k, i), i > 0 ? 1 : 0)} ${sizes[i]}`;
 }
 
 /**
  * Format a transfer speed in bytes/sec to a human-readable string.
- * Examples: 500 → "500 B/s", 2048 → "2.0 KB/s", 5242880 → "5.0 MB/s"
+ * Examples: 500 → "500 B/s", 2048 → "2,0 KB/s", 5242880 → "5,0 MB/s"
  */
 export function formatSpeed(bps: number): string {
   if (bps < 1024) return `${bps} B/s`;
-  if (bps < 1024 * 1024) return `${(bps / 1024).toFixed(1)} KB/s`;
-  return `${(bps / (1024 * 1024)).toFixed(1)} MB/s`;
+  if (bps < 1024 * 1024) return `${fixedPtBr(bps / 1024, 1)} KB/s`;
+  return `${fixedPtBr(bps / (1024 * 1024), 1)} MB/s`;
 }
 
 /**
@@ -26,9 +31,9 @@ export function formatSpeed(bps: number): string {
  */
 export function formatEta(secs: number | null): string {
   if (secs === null || secs <= 0) return "";
-  if (secs < 60) return `~${secs}s`;
-  if (secs < 3600) return `~${Math.floor(secs / 60)}m ${secs % 60}s`;
-  return `~${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`;
+  if (secs < 60) return `~${secs} s`;
+  if (secs < 3600) return `~${Math.floor(secs / 60)} min ${secs % 60} s`;
+  return `~${Math.floor(secs / 3600)} h ${Math.floor((secs % 3600) / 60)} min`;
 }
 
 import type { TransferStatusValue } from "../types";

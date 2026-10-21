@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "anySCP",
+  "productName": "Talktoall Files",
   "version": "0.0.0-dev",
-  "identifier": "com.macnev2013.anyscp",
+  "identifier": "br.com.talktoall.files",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -18,10 +18,10 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "copyright": "© 2026 Nevil Macwan",
+    "copyright": "© 2026 talktoall. Baseado no anySCP © 2026 Nevil Macwan (MIT)",
     "category": "DeveloperTool",
-    "shortDescription": "A modern desktop client for SSH, SFTP, and S3",
-    "longDescription": "anySCP is a free, open-source desktop application that combines an SSH terminal, SFTP file explorer, and S3-compatible cloud storage browser into a single, fast, privacy-first tool. Built with Tauri v2, it runs natively on macOS, Windows, and Linux.",
+    "shortDescription": "Seus servidores SSH, FTP e FTPS em um só lugar, com acesso pelo Claude",
+    "longDescription": "Talktoall Files reúne terminal SSH, navegador de arquivos SFTP, FTP e FTPS e armazenamento S3 em um app só, com um servidor MCP para o Claude e o Codex trabalharem nos seus servidores sem ver as senhas. Baseado no anySCP, de Nevil Macwan, sob a licença MIT.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -29,14 +29,30 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "createUpdaterArtifacts": "v1Compatible"
+    "createUpdaterArtifacts": "v1Compatible",
+    "publisher": "talktoall",
+    "windows": {
+      "wix": {
+        "language": "pt-BR"
+      },
+      "nsis": {
+        "languages": [
+          "PortugueseBR"
+        ],
+        "displayLanguageSelector": false
+      }
+    },
+    "resources": {
+      "../LICENSE": "LICENSE.txt"
+    }
   },
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDExMjY1REUyNkY0RDVDQjUKUldTMVhFMXY0bDBtRWM5d2Q1OHY3RWc1aHl4c0tYaFJjOGtGY1pSd2hrK0FRNkJzNkFzNi9GbEYK",
       "endpoints": [
-        "https://github.com/luan0308/anySCP/releases/latest/download/latest.json"
+        "https://github.com/luan0308/talktoall-files/releases/latest/download/latest.json"
       ]
     }
-  }
+  },
+  "mainBinaryName": "talktoall-files"
 }

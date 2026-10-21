@@ -74,7 +74,7 @@ export function VariableDialog({ snippet, onExecute, onCancel }: VariableDialogP
       footer={
         <>
           <button type="button" onClick={onCancel} className={BTN_GHOST}>
-            Cancel
+            Cancelar
           </button>
           <button
             form="variable-dialog-form"
@@ -82,7 +82,7 @@ export function VariableDialog({ snippet, onExecute, onCancel }: VariableDialogP
             disabled={hasUnmetRequired}
             className={BTN_PRIMARY}
           >
-            Execute
+            Executar
           </button>
         </>
       }
@@ -92,16 +92,16 @@ export function VariableDialog({ snippet, onExecute, onCancel }: VariableDialogP
           <div className="flex items-start gap-2.5 p-3 rounded-lg bg-status-error/10 border border-status-error/30">
             <AlertTriangle size={16} strokeWidth={2} className="text-status-error shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-[length:var(--text-xs)] text-status-error leading-relaxed">
-              This snippet is flagged as dangerous. Review the resolved command carefully before execution.
+              Este comando está marcado como perigoso. Revise o comando final com atenção antes de executar.
             </p>
           </div>
         )}
 
         {builtinVars.length > 0 && (
           <div className="flex flex-col gap-3">
-            <p className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted">Auto-filled</p>
+            <p className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted">Preenchidas automaticamente</p>
             {builtinVars.map((name) => {
-              const resolved = resolveBuiltin(name, session) ?? "(no active session)";
+              const resolved = resolveBuiltin(name, session) ?? "(nenhuma sessão ativa)";
               return (
                 <div key={name}>
                   <label className={labelClass}>{`{{${name}}}`}</label>
@@ -119,14 +119,14 @@ export function VariableDialog({ snippet, onExecute, onCancel }: VariableDialogP
         {userVarNames.length > 0 && (
           <div className="flex flex-col gap-3">
             {builtinVars.length > 0 && (
-              <p className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted">Variables</p>
+              <p className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted">Variáveis</p>
             )}
             {userVarNames.map((name) => {
               const meta = variableMeta.find((v) => v.name === name);
               const isFirst = inputIndex === 0;
               inputIndex++;
               const label = meta?.label ?? name;
-              const placeholder = meta?.placeholder ?? `Enter ${name}`;
+              const placeholder = meta?.placeholder ?? `Informe ${name}`;
               const options = meta?.options ?? null;
               const required = meta?.required ?? false;
 
@@ -134,14 +134,14 @@ export function VariableDialog({ snippet, onExecute, onCancel }: VariableDialogP
                 <div key={name}>
                   <label className={labelClass}>
                     {label}
-                    {required && <span className="text-status-error ml-1" aria-label="required">*</span>}
+                    {required && <span className="text-status-error ml-1" aria-label="obrigatório">*</span>}
                   </label>
                   {options && options.length > 0 ? (
                     <CustomSelect
                       value={values[name] ?? ""}
                       onChange={(v) => setValue(name, v)}
-                      placeholder="— select —"
-                      options={[{ value: "", label: "— select —" }, ...options.map((opt) => ({ value: opt, label: opt }))]}
+                      placeholder="Selecionar…"
+                      options={[{ value: "", label: "Selecionar…" }, ...options.map((opt) => ({ value: opt, label: opt }))]}
                     />
                   ) : (
                     <input
@@ -162,7 +162,7 @@ export function VariableDialog({ snippet, onExecute, onCancel }: VariableDialogP
 
         {allVarNames.length === 0 && (
           <p className="text-[length:var(--text-sm)] text-text-muted text-center py-2">
-            No variables to fill in.
+            Nenhuma variável para preencher.
           </p>
         )}
       </form>

@@ -123,7 +123,7 @@ export const useUpdaterStore = create<UpdaterState>((set, get) => ({
               status: "error",
               error: message(
                 relaunchErr,
-                "Couldn't restart automatically — please reopen the app",
+                "Não foi possível reiniciar automaticamente. Abra o app de novo.",
               ),
             });
           }
@@ -136,7 +136,7 @@ export const useUpdaterStore = create<UpdaterState>((set, get) => ({
     } catch (err) {
       set({
         status: "error",
-        error: message(err, "Failed to check for updates"),
+        error: message(err, "Não foi possível procurar atualizações"),
       });
     }
   },
@@ -163,7 +163,7 @@ export const useUpdaterStore = create<UpdaterState>((set, get) => ({
     } catch (err) {
       set({
         status: "error",
-        error: message(err, "Failed to check for updates"),
+        error: message(err, "Não foi possível procurar atualizações"),
       });
     }
   },
@@ -185,7 +185,7 @@ export const useUpdaterStore = create<UpdaterState>((set, get) => ({
       const { relaunch } = await import("@tauri-apps/plugin-process");
       await relaunch();
     } catch (err) {
-      set({ status: "error", error: message(err, "Download failed") });
+      set({ status: "error", error: message(err, "O download falhou") });
     }
   },
 
@@ -198,7 +198,7 @@ export const useUpdaterStore = create<UpdaterState>((set, get) => ({
         status: "error",
         error: message(
           err,
-          "Couldn't restart automatically — please reopen the app",
+          "Não foi possível reiniciar automaticamente. Abra o app de novo.",
         ),
       });
     }

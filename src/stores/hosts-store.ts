@@ -34,7 +34,7 @@ export const useHostsStore = create<HostsState>((set, get) => ({
       const msg =
         err && typeof err === "object" && "message" in err
           ? String((err as { message: string }).message)
-          : "Failed to load hosts";
+          : "Não foi possível carregar os servidores";
       set({ error: msg });
     } finally {
       set({ loading: false });
@@ -52,12 +52,12 @@ export const useHostsStore = create<HostsState>((set, get) => ({
     const { invoke } = await import("@tauri-apps/api/core");
     const hosts = await invoke<SavedHost[]>("list_hosts");
     const orig = hosts.find((h) => h.id === id);
-    if (!orig) throw new Error(`host not found: ${id}`);
+    if (!orig) throw new Error(`Servidor não encontrado: ${id}`);
     const now = new Date().toISOString();
     const duplicate: SavedHost = {
       ...orig,
       id: crypto.randomUUID(),
-      label: `${orig.label || orig.host} (copy)`,
+      label: `${orig.label || orig.host} (cópia)`,
       created_at: now,
       updated_at: now,
       last_connected_at: null,

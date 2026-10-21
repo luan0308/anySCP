@@ -19,7 +19,7 @@ export function ExplorerDropZone({ path, intoFolder = false }: ExplorerDropZoneP
         "animate-[fadeIn_120ms_var(--ease-expo-out)_both]",
       ].join(" ")}
       role="presentation"
-      aria-label="Drop files to upload"
+      aria-label="Solte os arquivos para enviar"
     >
       <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-accent/10">
         <Upload
@@ -31,7 +31,7 @@ export function ExplorerDropZone({ path, intoFolder = false }: ExplorerDropZoneP
       </div>
       <div className="flex flex-col items-center gap-1">
         <p className="text-[length:var(--text-sm)] font-semibold text-accent">
-          {folderName ? `Drop to upload into ${folderName}` : "Drop files to upload"}
+          {folderName ? `Solte para enviar para ${folderName}` : "Solte os arquivos para enviar"}
         </p>
         <p className="font-mono text-[length:var(--text-2xs)] text-text-muted truncate max-w-xs text-center">
           {path}

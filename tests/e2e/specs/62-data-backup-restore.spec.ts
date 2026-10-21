@@ -160,16 +160,16 @@ describe("Settings → Data: UI gating", () => {
         await (await $("[data-testid='s-clear-data']")).waitForDisplayed({ timeout: 10_000 });
     });
 
-    it("clear-all-data stays disabled until you type DELETE", async () => {
+    it("clear-all-data stays disabled until you type EXCLUIR", async () => {
         await (await $("[data-testid='s-clear-data']")).click();
         const submit = await $("[data-testid='reset-confirm-submit']");
         await submit.waitForDisplayed({ timeout: 5_000 });
         expect(await submit.isEnabled()).to.equal(false);
 
-        await (await $("[data-testid='reset-confirm-input']")).setValue("DELETE");
+        await (await $("[data-testid='reset-confirm-input']")).setValue("EXCLUIR");
         await browser.waitUntil(async () => await submit.isEnabled(), {
             timeout: 5_000,
-            timeoutMsg: "Clear-all-data submit never enabled after typing DELETE",
+            timeoutMsg: "Clear-all-data submit never enabled after typing EXCLUIR",
         });
 
         // Close WITHOUT confirming — must not wipe anything.

@@ -1,4 +1,4 @@
-//! anyscp-mcp: lets Claude browse and edit the servers saved in anySCP.
+//! talktoall-files-mcp: lets Claude browse and edit the servers saved in Talktoall Files.
 //!
 //! Speaks the Model Context Protocol over stdio (newline-delimited JSON-RPC),
 //! which is how Claude Desktop and Claude Code launch local servers. Stdout
@@ -24,7 +24,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const DEFAULT_PROTOCOL: &str = "2025-06-18";
 
 const INSTRUCTIONS: &str =
-    "Tools for the SFTP, FTP and FTPS servers the user saved in the anySCP app. \
+    "Tools for the SFTP, FTP and FTPS servers the user saved in the Talktoall Files app. \
 Start with list_servers to see what exists and refer to servers by name. Paths on the server are \
 absolute or relative to the login folder. Prefer edit_file for changes to existing files. Treat \
 servers whose environment is production with care and confirm destructive actions with the user.";
@@ -33,16 +33,16 @@ servers whose environment is production with care and confirm destructive action
 async fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.iter().any(|a| a == "--version" || a == "-V") {
-        println!("anyscp-mcp {VERSION}");
+        println!("talktoall-files-mcp {VERSION}");
         return;
     }
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!(
-            "anyscp-mcp {VERSION}\n\nMCP server for the servers saved in anySCP.\n\n\
-             Usage:\n  anyscp-mcp            run as an MCP server over stdio (what Claude launches)\n  \
-             anyscp-mcp --check    show where the anySCP data is and which servers Claude will see\n  \
-             anyscp-mcp --config   print the snippet for claude_desktop_config.json\n\n\
-             Environment:\n  ANYSCP_DB=path            use a different anyscp.db\n  \
+            "talktoall-files-mcp {VERSION}\n\nMCP server for the servers saved in Talktoall Files.\n\n\
+             Usage:\n  talktoall-files-mcp            run as an MCP server over stdio (what Claude launches)\n  \
+             talktoall-files-mcp --check    show where the app data is and which servers Claude will see\n  \
+             talktoall-files-mcp --config   print the snippet for claude_desktop_config.json\n\n\
+             Environment:\n  TALKTOALL_FILES_DB=path   use a different database file\n  \
              ANYSCP_MCP_READONLY=1     only expose read tools"
         );
         return;
@@ -51,7 +51,7 @@ async fn main() {
     let store = match Store::locate() {
         Ok(s) => Arc::new(s),
         Err(e) => {
-            eprintln!("anyscp-mcp: {e:#}");
+            eprintln!("talktoall-files-mcp: {e:#}");
             std::process::exit(1);
         }
     };
@@ -152,7 +152,7 @@ async fn handle(
             json!({
                 "protocolVersion": version,
                 "capabilities": { "tools": { "listChanged": false } },
-                "serverInfo": { "name": "anyscp", "title": "anySCP", "version": VERSION },
+                "serverInfo": { "name": "talktoall-files", "title": "Talktoall Files", "version": VERSION },
                 "instructions": INSTRUCTIONS
             })
         }
@@ -196,11 +196,11 @@ async fn handle(
 }
 
 fn check(store: &Store) {
-    println!("anyscp-mcp {VERSION}");
-    println!("anySCP database: {}", store.db_path().display());
+    println!("talktoall-files-mcp {VERSION}");
+    println!("Database: {}", store.db_path().display());
     match store.list() {
         Err(e) => println!("\nProblem: {e:#}"),
-        Ok(list) if list.is_empty() => println!("\nNo servers saved yet. Add one in anySCP."),
+        Ok(list) if list.is_empty() => println!("\nNo servers saved yet. Add one in Talktoall Files."),
         Ok(list) => {
             println!("\nServers Claude will see ({}):", list.len());
             for s in list {
@@ -226,8 +226,8 @@ fn check(store: &Store) {
 fn print_config() {
     let exe = std::env::current_exe()
         .map(|p| p.display().to_string())
-        .unwrap_or_else(|_| "anyscp-mcp".into());
-    let snippet = json!({ "mcpServers": { "anyscp": { "command": exe, "args": [] } } });
+        .unwrap_or_else(|_| "talktoall-files-mcp".into());
+    let snippet = json!({ "mcpServers": { "talktoall-files": { "command": exe, "args": [] } } });
     println!(
         "{}",
         serde_json::to_string_pretty(&snippet).unwrap_or_default()

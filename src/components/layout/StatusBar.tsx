@@ -1,5 +1,14 @@
 import { useSessionStore } from "../../stores/session-store";
 import { useEffect, useState } from "react";
+import type { ConnectionStatus } from "../../types/ssh";
+
+const STATUS_LABELS: Record<ConnectionStatus, string> = {
+  Connecting: "Conectando…",
+  Connected: "Conectado",
+  Disconnecting: "Desconectando…",
+  Disconnected: "Desconectado",
+  Error: "Erro",
+};
 
 export function StatusBar() {
   const activeSessionId = useSessionStore((s) => s.activeSessionId);
@@ -52,7 +61,7 @@ export function StatusBar() {
             </span>
           </span>
           <span className="mx-2 w-px h-3 bg-border" />
-          <span>{activeSession.status}</span>
+          <span>{STATUS_LABELS[activeSession.status] ?? activeSession.status}</span>
           {elapsed && (
             <>
               <span className="mx-2 w-px h-3 bg-border" />
@@ -61,11 +70,11 @@ export function StatusBar() {
           )}
           <span className="flex-1" />
           <span className="font-mono text-text-muted tabular-nums">
-            {sessionCount} session{sessionCount !== 1 ? "s" : ""}
+            {sessionCount} {sessionCount !== 1 ? "sessões" : "sessão"}
           </span>
         </>
       ) : (
-        <span className="text-text-muted">No active session</span>
+        <span className="text-text-muted">Nenhuma sessão ativa</span>
       )}
     </div>
   );

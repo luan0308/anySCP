@@ -78,7 +78,7 @@ function OptionsInput({
       value={raw}
       onChange={(e) => setRaw(e.target.value)}
       onBlur={commitValue}
-      placeholder="e.g., start, stop, restart, status"
+      placeholder="Ex.: start, stop, restart, status"
       disabled={disabled}
       className={className}
     />
@@ -118,30 +118,30 @@ function VariableRow({ variable, onChange, disabled }: VariableRowProps) {
             disabled={disabled}
             className="w-3.5 h-3.5 rounded accent-accent"
           />
-          <span className="text-[11px] text-text-muted">Required</span>
+          <span className="text-[11px] text-text-muted">Obrigatório</span>
         </label>
       </div>
 
       {/* Fields in a 2-column grid */}
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <span className={rowLabelClass}>Label</span>
+          <span className={rowLabelClass}>Rótulo</span>
           <input
             type="text"
             value={variable.label ?? ""}
             onChange={(e) => onChange({ ...variable, label: e.target.value || null })}
-            placeholder="Display label"
+            placeholder="Rótulo exibido"
             disabled={disabled}
             className={rowInputClass}
           />
         </div>
         <div>
-          <span className={rowLabelClass}>Default</span>
+          <span className={rowLabelClass}>Padrão</span>
           <input
             type="text"
             value={variable.default_value ?? ""}
             onChange={(e) => onChange({ ...variable, default_value: e.target.value || null })}
-            placeholder="Default value"
+            placeholder="Valor padrão"
             disabled={disabled}
             className={rowInputClass}
           />
@@ -150,7 +150,7 @@ function VariableRow({ variable, onChange, disabled }: VariableRowProps) {
 
       {/* Options — full width */}
       <div>
-        <span className={rowLabelClass}>Options (comma-separated)</span>
+        <span className={rowLabelClass}>Opções (separadas por vírgula)</span>
         <OptionsInput
           value={variable.options}
           onChange={(opts) => onChange({ ...variable, options: opts })}
@@ -224,14 +224,14 @@ export function SnippetEditModal({
   const handleSave = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!form.name.trim()) { setError("Name is required"); return; }
-      if (!form.command.trim()) { setError("Command is required"); return; }
+      if (!form.name.trim()) { setError("Informe o nome"); return; }
+      if (!form.command.trim()) { setError("Informe o comando"); return; }
       setSaving(true);
       setError(null);
       try {
         await onSave(buildSnippet());
       } catch (err: unknown) {
-        setError(extractError(err, "Failed to save snippet"));
+        setError(extractError(err, "Não foi possível salvar o comando"));
         setSaving(false);
       }
     },
@@ -255,7 +255,7 @@ export function SnippetEditModal({
     <ModalShell
       open={open}
       onClose={onClose}
-      title={isEdit ? "Edit Snippet" : "New Snippet"}
+      title={isEdit ? "Editar comando" : "Novo comando"}
       icon={Braces}
       maxWidth="xl"
       scrollable
@@ -264,7 +264,7 @@ export function SnippetEditModal({
       footer={
         <>
           <button type="button" onClick={onClose} disabled={saving} className={BTN_GHOST}>
-            Cancel
+            Cancelar
           </button>
           <button
             form="snippet-edit-form"
@@ -273,7 +273,7 @@ export function SnippetEditModal({
             disabled={saving || !form.name.trim() || !form.command.trim()}
             className={BTN_PRIMARY}
           >
-            {saving ? "Saving…" : "Save"}
+            {saving ? "Salvando…" : "Salvar"}
           </button>
         </>
       }
@@ -282,7 +282,7 @@ export function SnippetEditModal({
           {/* Name */}
           <div>
             <label className={labelClass}>
-              Name <span className="text-status-error">*</span>
+              Nome <span className="text-status-error">*</span>
             </label>
             <input
               ref={nameRef}
@@ -290,7 +290,7 @@ export function SnippetEditModal({
               type="text"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="e.g., Restart Nginx"
+              placeholder="Ex.: Reiniciar Nginx"
               disabled={saving}
               required
               className={inputClass}
@@ -300,13 +300,13 @@ export function SnippetEditModal({
           {/* Command */}
           <div>
             <label className={labelClass}>
-              Command <span className="text-status-error">*</span>
+              Comando <span className="text-status-error">*</span>
             </label>
             <textarea
               data-testid="snippet-modal-command"
               value={form.command}
               onChange={(e) => handleCommandChange(e.target.value)}
-              placeholder="e.g., sudo systemctl restart {{service}}"
+              placeholder="Ex.: sudo systemctl restart {{service}}"
               disabled={saving}
               required
               rows={4}
@@ -316,17 +316,17 @@ export function SnippetEditModal({
               ].join(" ")}
             />
             <p className="mt-1 text-[11px] text-text-muted">
-              Use <span className="font-mono text-accent">{"{{variable_name}}"}</span> syntax to define variables.
+              Use a sintaxe <span className="font-mono text-accent">{"{{nome_da_variavel}}"}</span> para definir variáveis.
             </p>
           </div>
 
           {/* Description */}
           <div>
-            <label className={labelClass}>Description</label>
+            <label className={labelClass}>Descrição</label>
             <textarea
               value={form.description ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value || null }))}
-              placeholder="Optional — describe what this snippet does"
+              placeholder="Opcional: descreva o que este comando faz"
               disabled={saving}
               rows={2}
               className={[inputClass, "resize-y min-h-[3rem]"].join(" ")}
@@ -337,14 +337,14 @@ export function SnippetEditModal({
           <div className="grid grid-cols-2 gap-4">
             {/* Folder */}
             <div>
-              <label className={labelClass}>Folder</label>
+              <label className={labelClass}>Pasta</label>
               <CustomSelect
                 value={form.folder_id ?? ""}
                 onChange={(v) => setForm((f) => ({ ...f, folder_id: v || null }))}
                 disabled={saving}
-                placeholder="No folder"
+                placeholder="Sem pasta"
                 options={[
-                  { value: "", label: "No folder" },
+                  { value: "", label: "Sem pasta" },
                   ...folders.map((folder) => ({
                     value: folder.id,
                     label: folder.name,
@@ -378,10 +378,10 @@ export function SnippetEditModal({
             />
             <div>
               <span className="text-[length:var(--text-sm)] font-medium text-text-secondary group-hover:text-text-primary transition-colors duration-[var(--duration-fast)]">
-                Flag as dangerous
+                Marcar como perigoso
               </span>
               <p className="text-[length:var(--text-xs)] text-text-muted mt-0.5">
-                Requires confirmation before execution.
+                Pede confirmação antes de executar.
               </p>
             </div>
           </label>
@@ -391,16 +391,16 @@ export function SnippetEditModal({
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted">
-                  Variables
+                  Variáveis
                 </span>
                 <span className="text-[11px] text-text-muted bg-bg-subtle border border-border rounded-full px-2 py-0.5">
-                  {variableMeta.length} detected
+                  {variableMeta.length} {variableMeta.length === 1 ? "detectada" : "detectadas"}
                 </span>
               </div>
 
               {/* Column headers */}
               <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-2 px-3 mb-1">
-                {["Variable", "Label", "Default", "Options", "Req"].map((h) => (
+                {["Variável", "Rótulo", "Padrão", "Opções", "Obrig."].map((h) => (
                   <span key={h} className="text-[11px] font-medium uppercase tracking-wide text-text-muted">
                     {h}
                   </span>

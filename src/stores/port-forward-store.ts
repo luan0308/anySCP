@@ -115,7 +115,7 @@ export const usePortForwardStore = create<PortForwardState>((set, get) => ({
     } catch (err) {
       const msg = err && typeof err === "object" && "message" in err
         ? String((err as { message: string }).message)
-        : typeof err === "string" ? err : "Tunnel failed to start";
+        : typeof err === "string" ? err : "Não foi possível iniciar o túnel";
       console.error("Start tunnel failed:", msg);
       set((state) => {
         const next = new Map(state.activeTunnels);

@@ -30,11 +30,11 @@ export async function duplicateS3Connection(conn: {
     // rather than leaving the user to hit an opaque auth failure on first use.
     if (outcome.credential_error) {
       toast.error(
-        `Duplicated "${conn.label}", but its access keys didn't copy — re-enter them on the copy.`,
+        `"${conn.label}" foi duplicado, mas as chaves de acesso não foram copiadas. Informe as chaves de novo na cópia.`,
       );
     }
   } catch {
     // Swallowing this left the user clicking Duplicate with nothing happening.
-    toast.error(`Couldn't duplicate "${conn.label}".`);
+    toast.error(`Não foi possível duplicar "${conn.label}".`);
   }
 }

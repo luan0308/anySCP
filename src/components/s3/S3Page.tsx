@@ -10,6 +10,17 @@ import type { ContextMenuItem } from "../shared/ContextMenu";
 import type { S3Session } from "../../stores/s3-store";
 import { duplicateS3Connection } from "../../lib/duplicate";
 
+const ENVIRONMENT_LABELS: Record<string, string> = {
+  production: "Produção",
+  staging: "Homologação",
+  dev: "Desenvolvimento",
+  testing: "Testes",
+};
+
+function environmentLabel(env: string): string {
+  return ENVIRONMENT_LABELS[env] ?? env;
+}
+
 export function S3Page() {
   const sessions = useS3Store((s) => s.sessions);
   const activeS3SessionId = useS3Store((s) => s.activeS3SessionId);
@@ -85,18 +96,18 @@ export function S3Page() {
     const conn = savedConnections.find((c) => c.id === session.sessionId);
     return [
       {
-        label: "Open",
+        label: "Abrir",
         icon: FolderOpen,
         onClick: () => setActiveS3Session(session.sessionId),
       },
       ...(conn ? [{
-        label: "Duplicate",
+        label: "Duplicar",
         icon: Copy,
         separator: true as const,
         onClick: () => void handleDuplicate(conn),
       }] : []),
       {
-        label: "Disconnect",
+        label: "Desconectar",
         icon: Trash2,
         separator: !conn ? true as const : undefined,
         danger: true as const,
@@ -115,14 +126,14 @@ export function S3Page() {
 
   return (
     <>
-      <div className="flex flex-col h-full overflow-y-scroll bg-bg-base">
+      <div className="flex flex-col h-full overflow-y-scroll">
         <div className="max-w-4xl w-full mx-auto px-8 py-8 flex flex-col gap-8">
 
           {/* Page title */}
           <div>
-            <h1 className="text-[length:var(--text-lg)] font-semibold text-text-primary">Cloud Storage</h1>
+            <h1 className="text-[28px] font-bold tracking-tight text-text-primary">Armazenamento em nuvem</h1>
             <p className="text-[length:var(--text-xs)] text-text-muted mt-1">
-              Browse and manage files in S3 buckets and S3-compatible storage services like MinIO, R2, and Wasabi
+              Veja e gerencie arquivos em buckets S3 e em serviços compatíveis com S3, como MinIO, R2 e Wasabi
             </p>
           </div>
 
@@ -139,8 +150,8 @@ export function S3Page() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Escape") setQuery(""); }}
-              placeholder="Search connections..."
-              aria-label="Search S3 connections"
+              placeholder="Buscar conexões…"
+              aria-label="Buscar conexões S3"
               className={[
                 "w-full pl-10 pr-4 py-2.5 rounded-xl text-[length:var(--text-sm)]",
                 "bg-bg-surface border border-border text-text-primary placeholder:text-text-muted",
@@ -163,7 +174,7 @@ export function S3Page() {
               ].join(" ")}
             >
               <Plus size={14} strokeWidth={2.2} />
-              New Connection
+              Nova conexão
             </button>
           </div>
 
@@ -171,7 +182,7 @@ export function S3Page() {
           {savedConnections.filter((c) => !sessions.has(c.id)).length > 0 && (
             <section>
               <h2 className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted mb-3">
-                Saved
+                Salvas
               </h2>
               <div className="grid grid-cols-3 gap-2.5">
                 {savedConnections
@@ -195,7 +206,7 @@ export function S3Page() {
           {/* Active connections */}
           <section>
             <h2 className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted mb-3">
-              Active
+              Ativas
             </h2>
 
             {filtered.length > 0 ? (
@@ -234,7 +245,7 @@ export function S3Page() {
                                 conn.environment === "staging" ? "bg-status-connecting/15 text-status-connecting" :
                                 "bg-accent/15 text-accent",
                               ].join(" ")}>
-                                {conn.environment}
+                                {environmentLabel(conn.environment)}
                               </span>
                             )}
                           </div>
@@ -249,16 +260,16 @@ export function S3Page() {
               </div>
             ) : sessionList.length > 0 && query.trim() ? (
               <p className="text-[length:var(--text-sm)] text-text-muted py-8 text-center">
-                No connections match &ldquo;{query}&rdquo;
+                Nenhuma conexão encontrada para &ldquo;{query}&rdquo;
               </p>
             ) : (
               <div className="flex flex-col items-center justify-center py-16 gap-3">
                 <Cloud size={30} strokeWidth={1.2} className="text-text-muted/30" />
                 <p className="text-[length:var(--text-sm)] text-text-muted">
-                  No S3 connections
+                  Nenhuma conexão S3
                 </p>
                 <p className="text-[length:var(--text-xs)] text-text-muted/60 text-center max-w-xs">
-                  Connect to Amazon S3, MinIO, Cloudflare R2, or any S3-compatible storage
+                  Conecte-se ao Amazon S3, MinIO, Cloudflare R2 ou qualquer armazenamento compatível com S3
                 </p>
               </div>
             )}
@@ -280,23 +291,23 @@ export function S3Page() {
         <ContextMenu
           items={[
             {
-              label: "Connect",
+              label: "Conectar",
               icon: FolderOpen,
               onClick: () => void handleReconnect(savedContextMenu.conn),
             },
             {
-              label: "Edit",
+              label: "Editar",
               icon: Pencil,
               onClick: () => setEditingConnection(savedContextMenu.conn),
             },
             {
-              label: "Duplicate",
+              label: "Duplicar",
               icon: Copy,
               separator: true,
               onClick: () => void handleDuplicate(savedContextMenu.conn),
             },
             {
-              label: "Delete",
+              label: "Excluir",
               icon: Trash2,
               danger: true,
               onClick: () => setDeletingSavedConn(savedContextMenu.conn),
@@ -322,8 +333,8 @@ export function S3Page() {
 
       <ConfirmDangerDialog
         open={deletingSavedConn !== null}
-        title="Delete this S3 connection?"
-        message="This connection will be permanently removed."
+        title="Excluir esta conexão S3?"
+        message="Esta conexão será removida de vez."
         onCancel={() => setDeletingSavedConn(null)}
         onConfirm={() => {
           const conn = deletingSavedConn;
@@ -383,7 +394,7 @@ function S3ConnectionCard({
                 conn.environment === "staging" ? "bg-status-connecting/15 text-status-connecting" :
                 "bg-accent/15 text-accent",
               ].join(" ")}>
-                {conn.environment}
+                {environmentLabel(conn.environment)}
               </span>
             )}
           </div>

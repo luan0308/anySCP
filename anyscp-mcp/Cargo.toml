@@ -1,12 +1,12 @@
 [package]
-name = "anyscp-mcp"
+name = "talktoall-files-mcp"
 version = "0.1.0"
-description = "MCP server that lets Claude work with the servers saved in anySCP (SFTP, FTP, FTPS)"
+description = "MCP server that lets Claude work with the servers saved in Talktoall Files (SFTP, FTP, FTPS)"
 license = "MIT"
 edition = "2021"
 
 [[bin]]
-name = "anyscp-mcp"
+name = "talktoall-files-mcp"
 path = "src/main.rs"
 
 [dependencies]

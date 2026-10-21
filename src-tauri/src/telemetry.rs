@@ -89,7 +89,7 @@ pub fn capture(event: &str, properties: Value) {
 fn get_or_create_device_id() -> String {
     let id_path = dirs::data_dir()
         .unwrap_or_else(|| std::path::PathBuf::from("."))
-        .join("com.macnev2013.anyscp")
+        .join("br.com.talktoall.files")
         .join(".device_id");
 
     if let Ok(id) = std::fs::read_to_string(&id_path) {

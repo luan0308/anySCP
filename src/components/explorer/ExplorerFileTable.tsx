@@ -107,19 +107,24 @@ interface ContextMenuState {
 // keeps month/day order and 12h/24h OS-aware. Formatters are hoisted — each
 // toLocale* call constructs an Intl.DateTimeFormat, and this runs twice per
 // row (title + text) on every render of large directories.
-const MODIFIED_DATE_FMT = new Intl.DateTimeFormat(undefined, {
+const MODIFIED_DATE_FMT = new Intl.DateTimeFormat("pt-BR", {
   year: "numeric",
-  month: "short",
+  month: "2-digit",
   day: "2-digit",
 });
-const MODIFIED_TIME_FMT = new Intl.DateTimeFormat(undefined, {
+const MODIFIED_TIME_FMT = new Intl.DateTimeFormat("pt-BR", {
   hour: "2-digit",
   minute: "2-digit",
 });
 function formatModified(unix: number | null): string {
-  if (unix === null) return "—";
+  if (unix === null) return "–";
   const date = new Date(unix * 1000);
   return `${MODIFIED_DATE_FMT.format(date)} ${MODIFIED_TIME_FMT.format(date)}`;
+}
+
+/** "1 item" / "3 itens". */
+function itemCount(n: number): string {
+  return `${n} ${n === 1 ? "item" : "itens"}`;
 }
 
 function EntryIcon({ entry }: { entry: ExplorerEntry }) {
@@ -212,7 +217,7 @@ function RenameRow({
         "bg-bg-base border border-border-focus outline-none ring-2 ring-ring",
         "transition-[border-color,box-shadow] duration-[var(--duration-fast)]",
       ].join(" ")}
-      aria-label="Rename file"
+      aria-label="Renomear arquivo"
     />
   );
 }
@@ -260,15 +265,15 @@ function NewFolderRow({
           if (e.key === "Enter") commit();
           if (e.key === "Escape") onCancel();
         }}
-        placeholder="Folder name"
+        placeholder="Nome da pasta"
         className={[
           "flex-1 px-1.5 py-0.5 rounded text-[length:var(--text-sm)] text-text-primary",
           "bg-bg-base border border-border-focus outline-none ring-2 ring-ring",
           "transition-[border-color,box-shadow] duration-[var(--duration-fast)]",
         ].join(" ")}
-        aria-label="New folder name"
+        aria-label="Nome da nova pasta"
       />
-      <span className="w-20" />
+      <span className="w-24" />
       <span className="w-44" />
       <span className="w-24" />
     </div>
@@ -316,15 +321,15 @@ function NewFileRow({
           if (e.key === "Enter") commit();
           if (e.key === "Escape") onCancel();
         }}
-        placeholder="file.txt"
+        placeholder="arquivo.txt"
         className={[
           "flex-1 px-1.5 py-0.5 rounded text-[length:var(--text-sm)] text-text-primary",
           "bg-bg-base border border-border-focus outline-none ring-2 ring-ring",
           "transition-[border-color,box-shadow] duration-[var(--duration-fast)]",
         ].join(" ")}
-        aria-label="New file name"
+        aria-label="Nome do novo arquivo"
       />
-      <span className="w-20" />
+      <span className="w-24" />
       <span className="w-44" />
       <span className="w-24" />
     </div>
@@ -767,7 +772,7 @@ export function ExplorerFileTable({
       const items: ContextMenuItem[] = [];
       if (canPaste) {
         items.push({
-          label: "Paste",
+          label: "Colar",
           icon: ClipboardPaste,
           onClick: () => onPaste?.(),
         });
@@ -780,7 +785,7 @@ export function ExplorerFileTable({
       }
       if (caps.canCreateFile) {
         items.push({
-          label: "New File",
+          label: "Novo arquivo",
           icon: File,
           onClick: () =>
             onCreateFile?.("") ||
@@ -789,7 +794,7 @@ export function ExplorerFileTable({
       }
       if (caps.canCreateFolder) {
         items.push({
-          label: "New Folder",
+          label: "Nova pasta",
           icon: FolderPlus,
           onClick: () =>
             onCreateFolder?.("") ||
@@ -807,14 +812,14 @@ export function ExplorerFileTable({
       const count = selectedIds.size;
       if (caps.canDownload && onDownloadMany) {
         items.push({
-          label: `Download ${count} items`,
+          label: `Baixar ${itemCount(count)}`,
           icon: Download,
           onClick: () => onDownloadMany(selectedEntries),
         });
       }
       if (caps.canCopyPaste) {
         items.push({
-          label: `Copy ${count} items`,
+          label: `Copiar ${itemCount(count)}`,
           icon: Copy,
           onClick: () =>
             onSetClipboard({
@@ -824,7 +829,7 @@ export function ExplorerFileTable({
             }),
         });
         items.push({
-          label: `Cut ${count} items`,
+          label: `Recortar ${itemCount(count)}`,
           icon: Scissors,
           onClick: () =>
             onSetClipboard({
@@ -835,7 +840,7 @@ export function ExplorerFileTable({
         });
         if (canPaste) {
           items.push({
-            label: "Paste",
+            label: "Colar",
             icon: ClipboardPaste,
             onClick: () => onPaste?.(),
           });
@@ -843,7 +848,7 @@ export function ExplorerFileTable({
       }
       if (caps.canDelete) {
         items.push({
-          label: `Delete ${count} items`,
+          label: `Excluir ${itemCount(count)}`,
           icon: Trash2,
           separator: true,
           danger: true,
@@ -864,7 +869,7 @@ export function ExplorerFileTable({
         editors.find((e) => e.id === defaultEditorId) ?? editors[0];
       // Primary "Edit" uses the default editor.
       items.push({
-        label: `Edit in ${defaultEditor.name}`,
+        label: `Editar no ${defaultEditor.name}`,
         icon: ExternalLink,
         onClick: () => onEditInEditor?.(entry, defaultEditor),
       });
@@ -872,7 +877,7 @@ export function ExplorerFileTable({
       // there's a choice beyond the default).
       if (editors.length > 1) {
         items.push({
-          label: "Open With",
+          label: "Abrir com",
           icon: ExternalLink,
           submenu: editors.map((ed) => ({
             label: ed.name,
@@ -885,13 +890,13 @@ export function ExplorerFileTable({
     if (caps.canDownload) {
       if (entry.entryType !== "Directory") {
         items.push({
-          label: "Download",
+          label: "Baixar",
           icon: Download,
           onClick: () => onDownload(entry),
         });
       } else if (provider.type === "sftp") {
         items.push({
-          label: "Download Folder",
+          label: "Baixar pasta",
           icon: Download,
           onClick: () => onDownload(entry),
         });
@@ -900,7 +905,7 @@ export function ExplorerFileTable({
 
     if (caps.canPresignUrl && entry.entryType === "File") {
       items.push({
-        label: "Copy Presigned URL",
+        label: "Copiar URL pré-assinada",
         icon: Link2,
         onClick: () => onPresignUrl?.(entry),
       });
@@ -908,21 +913,21 @@ export function ExplorerFileTable({
 
     if (caps.canRename) {
       items.push({
-        label: "Rename",
+        label: "Renomear",
         icon: Pencil,
         onClick: () => setRenamingId(entry.id),
       });
     }
 
     items.push({
-      label: "Copy Path",
+      label: "Copiar caminho",
       icon: Copy,
       onClick: () => void navigator.clipboard.writeText(entry.id),
     });
 
     if (caps.canCopyPaste) {
       items.push({
-        label: "Copy",
+        label: "Copiar",
         icon: Copy,
         separator: true,
         onClick: () =>
@@ -933,7 +938,7 @@ export function ExplorerFileTable({
           }),
       });
       items.push({
-        label: "Cut",
+        label: "Recortar",
         icon: Scissors,
         onClick: () =>
           onSetClipboard({
@@ -944,7 +949,7 @@ export function ExplorerFileTable({
       });
       if (canPaste) {
         items.push({
-          label: "Paste",
+          label: "Colar",
           icon: ClipboardPaste,
           onClick: () => onPaste?.(),
         });
@@ -953,7 +958,7 @@ export function ExplorerFileTable({
 
     if (caps.canGetInfo) {
       items.push({
-        label: "Properties",
+        label: "Propriedades",
         icon: Info,
         separator: true,
         onClick: () => setPropsEntry(entry),
@@ -962,7 +967,7 @@ export function ExplorerFileTable({
 
     if (caps.canDelete) {
       items.push({
-        label: "Delete",
+        label: "Excluir",
         icon: Trash2,
         separator: true,
         danger: true,
@@ -1002,7 +1007,7 @@ export function ExplorerFileTable({
     [
       // No text-align here — each header sets its own (buttons default to center).
       // A hardcoded one would beat the columns' text-center in the CSS cascade.
-      "text-[length:var(--text-xs)] font-semibold uppercase tracking-wide text-text-muted",
+      "text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted whitespace-nowrap",
       "cursor-pointer select-none hover:text-text-secondary transition-colors duration-[var(--duration-fast)]",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm",
       sortBy === col ? "text-text-secondary" : "",
@@ -1047,7 +1052,7 @@ export function ExplorerFileTable({
           rather than a child, so the scroller stays a direct flex child of the
           pane column and scrolls. The right padding reserves the scrollbar
           gutter so the columns line up with the rows beneath. */}
-      <div className="shrink-0 bg-bg-surface border-b border-border flex items-center gap-2 py-2 pl-3 pr-[calc(0.75rem+var(--scrollbar-size))]">
+      <div className="shrink-0 flex items-center gap-3 pt-4 pb-2 pl-6 pr-[calc(1.5rem+var(--scrollbar-size))]">
         <span className="w-5 shrink-0" />
 
         <button
@@ -1058,18 +1063,18 @@ export function ExplorerFileTable({
             sortBy === "name" ? (sortAsc ? "ascending" : "descending") : "none"
           }
         >
-          Name <SortArrow col="name" gap="ml-0.5" />
+          Nome <SortArrow col="name" gap="ml-0.5" />
         </button>
 
         <button
           data-testid="explorer-sort-size"
-          className={`w-20 text-right ${thClass("size")}`}
+          className={`w-24 text-right ${thClass("size")}`}
           onClick={() => handleSortClick("size")}
           aria-sort={
             sortBy === "size" ? (sortAsc ? "ascending" : "descending") : "none"
           }
         >
-          <SortArrow col="size" gap="mr-0.5" /> Size
+          <SortArrow col="size" gap="mr-0.5" /> Tamanho
         </button>
 
         <button
@@ -1084,16 +1089,16 @@ export function ExplorerFileTable({
               : "none"
           }
         >
-          <SortArrow col="modified" gap="mr-0.5" /> Modified{" "}
+          <SortArrow col="modified" gap="mr-0.5" /> Modificado{" "}
           <SortArrow col={null} gap="ml-0.5" />
         </button>
 
         {/* Last column: Permissions for SFTP, Class for S3 */}
-        <span className="w-24 text-[length:var(--text-xs)] font-semibold uppercase tracking-wide text-text-muted select-none">
+        <span className="w-24 text-right text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted select-none">
           {caps.hasPermissions
-            ? "Permissions"
+            ? "Permissões"
             : caps.hasStorageClass
-              ? "Class"
+              ? "Classe"
               : ""}
         </span>
       </div>
@@ -1102,7 +1107,7 @@ export function ExplorerFileTable({
         ref={tableRef}
         // -scroll, not -auto: the header above reserves the scrollbar gutter,
         // so short listings would otherwise sit 6px left of their headers.
-        className={`flex-1 overflow-y-scroll${dragGhost ? " select-none" : ""}`}
+        className={`flex-1 overflow-y-scroll px-2 pb-2${dragGhost ? " select-none" : ""}`}
         onClick={(e) => {
           const target = e.target as Element;
           if (!target.closest("[data-entry-row]")) setSelectedIds(new Set());
@@ -1139,7 +1144,7 @@ export function ExplorerFileTable({
               aria-hidden="true"
             />
             <p className="text-[length:var(--text-sm)] text-text-muted">
-              This folder is empty
+              Esta pasta está vazia
             </p>
             <div className="flex items-center gap-2">
               {caps.canCreateFile && (
@@ -1150,7 +1155,7 @@ export function ExplorerFileTable({
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[length:var(--text-xs)] font-medium text-text-muted hover:text-text-secondary hover:bg-bg-subtle transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <FilePlus size={13} strokeWidth={2} aria-hidden="true" />
-                  New File
+                  Novo arquivo
                 </button>
               )}
               {caps.canCreateFolder && (
@@ -1163,18 +1168,18 @@ export function ExplorerFileTable({
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[length:var(--text-xs)] font-medium text-text-muted hover:text-text-secondary hover:bg-bg-subtle transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <FolderPlus size={13} strokeWidth={2} aria-hidden="true" />
-                  New Folder
+                  Nova pasta
                 </button>
               )}
             </div>
             <p className="text-[length:var(--text-2xs)] text-text-muted/60">
-              Right-click for more options
+              Clique com o botão direito para mais opções
             </p>
           </div>
         ) : (
           <div
             role="list"
-            aria-label="Directory contents"
+            aria-label="Conteúdo da pasta"
             onContextMenu={(e) => {
               const target = e.target as Element;
               if (!target.closest("[data-entry-row]"))
@@ -1300,13 +1305,13 @@ export function ExplorerFileTable({
                       : undefined
                   }
                   className={[
-                    "flex items-center gap-2 px-3 py-2 cursor-default",
+                    "flex items-center gap-3 px-4 h-11 rounded-[12px] cursor-default",
                     "transition-colors duration-[var(--duration-fast)]",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
                     "group",
                     isSelected
-                      ? "bg-accent/10 text-text-primary"
-                      : "hover:bg-bg-subtle",
+                      ? "bg-accent/[0.12] text-text-primary font-semibold"
+                      : "hover:bg-white/[0.05]",
                     cutIds?.has(entry.id) ? "opacity-40" : "",
                     dragOverId === entry.id
                       ? "ring-2 ring-accent bg-accent/10"
@@ -1332,9 +1337,9 @@ export function ExplorerFileTable({
                   </span>
 
                   {/* Size */}
-                  <span className="w-20 text-right text-[length:var(--text-xs)] text-text-muted shrink-0 font-mono tabular-nums whitespace-nowrap">
+                  <span className="w-24 text-right text-[13px] text-text-secondary shrink-0 tabular-nums whitespace-nowrap font-normal">
                     {entry.entryType === "Directory"
-                      ? "—"
+                      ? "–"
                       : formatBytes(entry.size)}
                   </span>
 
@@ -1343,7 +1348,7 @@ export function ExplorerFileTable({
                       12px because mono reads visually larger than the 14px sans.
                       Truncate + title as a safety net for wide locales (#109). */}
                   <span
-                    className="w-44 text-center text-[length:var(--text-xs)] text-text-muted shrink-0 font-mono tracking-tight truncate"
+                    className="w-44 text-center text-[13px] text-text-secondary shrink-0 tabular-nums truncate font-normal"
                     title={formatModified(entry.modified)}
                   >
                     {formatModified(entry.modified)}
@@ -1356,12 +1361,12 @@ export function ExplorerFileTable({
                         ? (entry.permissionsDisplay ?? "")
                         : undefined
                     }
-                    className="w-24 font-mono text-[length:var(--text-xs)] text-text-muted shrink-0 tracking-tight whitespace-nowrap"
+                    className="w-24 text-right font-mono text-[12px] text-text-muted shrink-0 tracking-tight whitespace-nowrap font-normal"
                   >
                     {caps.hasPermissions
                       ? (entry.permissionsDisplay ?? "")
                       : caps.hasStorageClass
-                        ? (entry.storageClass ?? "—")
+                        ? (entry.storageClass ?? "–")
                         : ""}
                   </span>
                 </div>
@@ -1402,12 +1407,12 @@ export function ExplorerFileTable({
       {/* Drag ghost for the pointer-driven move/copy, with an Alt=copy hint. */}
       {dragGhost && (
         <div
-          className="fixed z-50 pointer-events-none rounded-md bg-accent px-2 py-1 text-[length:var(--text-2xs)] font-medium text-white shadow-[var(--shadow-md)]"
+          className="fixed z-50 pointer-events-none rounded-full bg-accent px-2.5 py-1 text-[length:var(--text-2xs)] font-semibold text-text-inverse shadow-[var(--shadow-md)]"
           style={{ left: dragGhost.x + 12, top: dragGhost.y + 8 }}
         >
           {dragGhost.copy
-            ? `Copy ${dragGhost.count} ${dragGhost.count === 1 ? "item" : "items"}`
-            : `Move ${dragGhost.count} ${dragGhost.count === 1 ? "item" : "items"} · ⌥ to copy`}
+            ? `Copiar ${itemCount(dragGhost.count)}`
+            : `Mover ${itemCount(dragGhost.count)} · ⌥ para copiar`}
         </div>
       )}
     </>
@@ -1431,8 +1436,8 @@ function DeleteConfirmDialog({
   const hasDirs = entries.some((e) => e.entryType === "Directory");
 
   const title = isSingle
-    ? `Delete ${entry.entryType === "Directory" ? "Directory" : "File"}`
-    : `Delete ${count} items`;
+    ? `Excluir ${entry.entryType === "Directory" ? "pasta" : "arquivo"}`
+    : `Excluir ${itemCount(count)}`;
 
   return (
     <ModalShell
@@ -1453,7 +1458,7 @@ function DeleteConfirmDialog({
             onClick={onCancel}
             className={BTN_GHOST}
           >
-            Cancel
+            Cancelar
           </button>
           <button
             data-testid="explorer-delete-confirm-button"
@@ -1461,7 +1466,7 @@ function DeleteConfirmDialog({
             onClick={onConfirm}
             className={BTN_DANGER}
           >
-            {isSingle ? "Delete" : `Delete ${count} items`}
+            {isSingle ? "Excluir" : `Excluir ${itemCount(count)}`}
           </button>
         </>
       }
@@ -1470,16 +1475,16 @@ function DeleteConfirmDialog({
         {isSingle ? (
           <>
             <span className="font-mono text-text-primary">{entry.name}</span>{" "}
-            will be permanently deleted.
+            será excluído permanentemente.
             {entry.entryType === "Directory" && (
-              <> All contents inside will also be removed.</>
+              <> Todo o conteúdo dentro dela também será removido.</>
             )}
           </>
         ) : (
           <>
-            {count} items will be permanently deleted.
+            {itemCount(count)} serão excluídos permanentemente.
             {hasDirs && (
-              <> Directories and all their contents will be removed.</>
+              <> As pastas e todo o conteúdo delas serão removidos.</>
             )}
           </>
         )}

@@ -175,7 +175,7 @@ export function SnippetsPage() {
       const copy: Snippet = {
         ...snippet,
         id: crypto.randomUUID(),
-        name: `${snippet.name} (copy)`,
+        name: `${snippet.name} (cópia)`,
         use_count: 0,
         last_used_at: null,
         created_at: now,
@@ -234,13 +234,13 @@ export function SnippetsPage() {
 
   return (
     <>
-      <div className="flex flex-col h-full overflow-y-scroll bg-bg-base">
+      <div className="flex flex-col h-full overflow-y-scroll">
         <div className="max-w-4xl w-full mx-auto px-8 py-8 flex flex-col gap-8">
 
           {/* Page title */}
           <div>
-            <h1 className="text-[length:var(--text-lg)] font-semibold text-text-primary">Snippets</h1>
-            <p className="text-[length:var(--text-xs)] text-text-muted mt-1">Save frequently used commands, organize them into folders, and execute with one click</p>
+            <h1 className="text-[28px] font-bold tracking-tight text-text-primary">Comandos</h1>
+            <p className="text-[length:var(--text-xs)] text-text-muted mt-1">Salve os comandos que você mais usa, organize em pastas e execute com um clique</p>
           </div>
 
           {/* Search bar */}
@@ -259,8 +259,8 @@ export function SnippetsPage() {
               onKeyDown={(e) => {
                 if (e.key === "Escape") setQuery("");
               }}
-              placeholder="Search snippets... (Cmd+F)"
-              aria-label="Search snippets"
+              placeholder="Buscar comandos… (Cmd+F)"
+              aria-label="Buscar comandos"
               className={[
                 "w-full pl-10 pr-4 py-2.5 rounded-xl text-[length:var(--text-sm)]",
                 "bg-bg-surface border border-border text-text-primary placeholder:text-text-muted",
@@ -282,10 +282,10 @@ export function SnippetsPage() {
                 "transition-all duration-[var(--duration-fast)]",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               ].join(" ")}
-              title="New Snippet (Cmd+N)"
+              title="Novo comando (Cmd+N)"
             >
               <Plus size={14} strokeWidth={2.2} aria-hidden="true" />
-              New Snippet
+              Novo comando
             </button>
 
             <button
@@ -297,10 +297,10 @@ export function SnippetsPage() {
                 "transition-all duration-[var(--duration-fast)]",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               ].join(" ")}
-              title="New Folder"
+              title="Nova pasta"
             >
               <FolderPlus size={14} strokeWidth={2} aria-hidden="true" />
-              New Folder
+              Nova pasta
             </button>
           </div>
 
@@ -311,7 +311,7 @@ export function SnippetsPage() {
                 id="folders-heading"
                 className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted mb-3"
               >
-                Folders
+                Pastas
               </h2>
               <div className="grid grid-cols-3 gap-2.5">
                 {folders.map((folder) => (
@@ -342,10 +342,10 @@ export function SnippetsPage() {
                     "hover:text-text-secondary transition-colors duration-[var(--duration-fast)]",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded",
                   ].join(" ")}
-                  aria-label="Back to all snippets"
+                  aria-label="Voltar para todos os comandos"
                 >
                   <ArrowLeft size={13} strokeWidth={2.2} aria-hidden="true" />
-                  All Snippets
+                  Todos os comandos
                 </button>
               )}
 
@@ -354,15 +354,15 @@ export function SnippetsPage() {
                 className="text-[length:var(--text-xs)] font-semibold uppercase tracking-widest text-text-muted"
               >
                 {searchQuery
-                  ? `Results for "${searchQuery}"`
+                  ? `Resultados para "${searchQuery}"`
                   : activeFolder
                     ? activeFolder.name
-                    : "Snippets"}
+                    : "Comandos"}
               </h2>
 
               {loading && (
                 <span className="text-[11px] text-text-muted animate-pulse ml-auto">
-                  Loading...
+                  Carregando…
                 </span>
               )}
             </div>
@@ -426,7 +426,7 @@ function EmptySnippetsState({ query, hasFolderFilter }: EmptySnippetsStateProps)
   if (query.trim()) {
     return (
       <p className="text-[length:var(--text-sm)] text-text-muted py-10 text-center">
-        No snippets match &ldquo;{query}&rdquo;
+        Nenhum comando encontrado para &ldquo;{query}&rdquo;
       </p>
     );
   }
@@ -434,7 +434,7 @@ function EmptySnippetsState({ query, hasFolderFilter }: EmptySnippetsStateProps)
   if (hasFolderFilter) {
     return (
       <p className="text-[length:var(--text-sm)] text-text-muted py-10 text-center">
-        No snippets in this folder yet.
+        Nenhum comando nesta pasta ainda.
       </p>
     );
   }
@@ -446,11 +446,11 @@ function EmptySnippetsState({ query, hasFolderFilter }: EmptySnippetsStateProps)
       </div>
       <div>
         <p className="text-[length:var(--text-sm)] font-medium text-text-secondary">
-          No snippets yet
+          Nenhum comando ainda
         </p>
         <p className="text-[length:var(--text-xs)] text-text-muted mt-1">
-          Create reusable commands with{" "}
-          <span className="font-mono text-accent">{"{{variables}}"}</span> for one-click execution.
+          Crie comandos reutilizáveis com{" "}
+          <span className="font-mono text-accent">{"{{variaveis}}"}</span> e execute com um clique.
         </p>
       </div>
     </div>

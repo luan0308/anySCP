@@ -25,7 +25,7 @@ export function PathBar({ path, onNavigate }: PathBarProps) {
   return (
     <div
       className="bg-bg-surface border-b border-border px-4 h-10 flex items-center gap-0.5 overflow-x-auto no-select"
-      aria-label="Current path"
+      aria-label="Caminho atual"
     >
       {segments.map((seg, index) => {
         const isLast = index === segments.length - 1;
@@ -46,7 +46,7 @@ export function PathBar({ path, onNavigate }: PathBarProps) {
             <button
               onClick={() => !isLast && onNavigate(seg.fullPath)}
               disabled={isLast}
-              title={isLast ? undefined : `Navigate to ${seg.fullPath}`}
+              title={isLast ? undefined : `Ir para ${seg.fullPath}`}
               className={[
                 "px-1.5 py-0.5 rounded",
                 "text-[length:var(--text-sm)] transition-colors duration-[var(--duration-fast)]",

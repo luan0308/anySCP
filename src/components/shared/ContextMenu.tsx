@@ -182,7 +182,7 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
     <div
       ref={menuRef}
       role="menu"
-      aria-label="Context menu"
+      aria-label="Menu de contexto"
       style={
         coords
           ? { left: coords.x, top: coords.y }

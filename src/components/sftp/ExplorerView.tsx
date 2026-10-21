@@ -70,7 +70,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
       try {
         await explorerInvoke(transport, "enqueue_upload", sessionId, { localPaths, remoteDir });
       } catch (err) {
-        toast.error(`Upload failed: ${errorMessage(err)}`);
+        toast.error(`Falha no envio: ${errorMessage(err)}`);
       }
     },
     [sessionId, transport],
@@ -257,7 +257,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
         const entries = await explorerInvoke<SftpEntry[]>(transport, "list_dir", sessionId, { path });
         setEntries(sessionId, path, entries);
       } catch (err: unknown) {
-        setError(sessionId, errorMessage(err, "Failed to list directory"));
+        setError(sessionId, errorMessage(err, "Não foi possível listar a pasta"));
       }
     },
     [sessionId, transport, setLoading, setEntries, setError],
@@ -297,7 +297,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
       // after a successful open), so the view keeps working.
       setError(
         sessionId,
-        errorMessage(err, `Failed to ${newSudoMode ? "enable" : "disable"} sudo mode`),
+        errorMessage(err, `Não foi possível ${newSudoMode ? "ativar" : "desativar"} o modo sudo`),
       );
     } finally {
       // On success the view remounts (tab id changes) and this is a no-op;
@@ -377,7 +377,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
         const { open } = await import("@tauri-apps/plugin-dialog");
         const localDir = await open({
           directory: true,
-          title: `Download "${entry.name}" to…`,
+          title: `Baixar "${entry.name}" para…`,
         }) as string | null;
         if (!localDir) return;
 
@@ -389,7 +389,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
         const { save } = await import("@tauri-apps/plugin-dialog");
         const savePath = await save({
           defaultPath: entry.name,
-          title: `Save "${entry.name}" as…`,
+          title: `Salvar "${entry.name}" como…`,
         });
         if (!savePath) return;
 
@@ -416,7 +416,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
       const { open } = await import("@tauri-apps/plugin-dialog");
       const localDir = await open({
         directory: true,
-        title: `Download ${entries.length} items to…`,
+        title: `Baixar ${entries.length} ${entries.length === 1 ? "item" : "itens"} para…`,
       }) as string | null;
       if (!localDir) return;
 
@@ -455,7 +455,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
       // the drag begins/ends.
       let prepToast: string | null = null;
       const prepTimer = setTimeout(() => {
-        prepToast = toast.info("Preparing download…");
+        prepToast = toast.info("Preparando download…");
       }, 400);
       try {
         const remotePaths = entries.map((en) => en.id);
@@ -469,10 +469,10 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
         // signal; the backend's drop result is the only success hook, so only
         // confirm when the drag actually dropped (not when it was cancelled).
         if (dropped && count > 0) {
-          toast.success(`Downloaded ${count} ${count === 1 ? "item" : "items"}`);
+          toast.success(`${count} ${count === 1 ? "item baixado" : "itens baixados"}`);
         }
       } catch (err) {
-        toast.error(`Download failed: ${errorMessage(err)}`);
+        toast.error(`Falha no download: ${errorMessage(err)}`);
       } finally {
         clearTimeout(prepTimer);
         if (prepToast) toast.dismiss(prepToast);
@@ -492,7 +492,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
       // the document base URL, threw, and silently fell back to a no-op
       // `window.prompt` in the macOS webview — see issue #69.)
       const { open } = await import("@tauri-apps/plugin-dialog");
-      const selection = await open({ multiple: true, title: "Upload file" });
+      const selection = await open({ multiple: true, title: "Enviar arquivos" });
       if (!selection) return;
       const localPaths = Array.isArray(selection) ? selection : [selection];
       if (localPaths.length === 0) return;
@@ -507,7 +507,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
     } catch (err) {
       // Transfer errors surface in the overlay, but a rejected enqueue (e.g.
       // unreadable local path) never creates a job there — toast it.
-      toast.error(`Upload failed: ${errorMessage(err)}`);
+      toast.error(`Falha no envio: ${errorMessage(err)}`);
     }
   }, [sessionId, transport, session]);
 
@@ -519,7 +519,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
     if (!session) return;
     try {
       const { open } = await import("@tauri-apps/plugin-dialog");
-      const selection = await open({ directory: true, multiple: true, title: "Upload folder" });
+      const selection = await open({ directory: true, multiple: true, title: "Enviar pasta" });
       if (!selection) return;
       const localPaths = Array.isArray(selection) ? selection : [selection];
       if (localPaths.length === 0) return;
@@ -531,7 +531,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
     } catch (err) {
       // Transfer errors surface in the overlay, but a rejected enqueue (e.g.
       // unreadable picked folder) never creates a job there — toast it.
-      toast.error(`Upload failed: ${errorMessage(err)}`);
+      toast.error(`Falha no envio: ${errorMessage(err)}`);
     }
   }, [sessionId, transport, session]);
 
@@ -677,7 +677,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
       }
       await loadDirectory(session.currentPath);
     } catch (err) {
-      setError(sessionId, err instanceof Error ? err.message : "Paste failed");
+      setError(sessionId, err instanceof Error ? err.message : "Não foi possível colar");
     } finally {
       setBusy(false);
     }
@@ -689,7 +689,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
       await explorerInvoke(transport, "move_entries", sessionId, { sourcePaths: sourceIds, targetDir });
       if (session) await loadDirectory(session.currentPath);
     } catch (err) {
-      setError(sessionId, err instanceof Error ? err.message : "Move failed");
+      setError(sessionId, err instanceof Error ? err.message : "Não foi possível mover");
     } finally {
       setBusy(false);
     }
@@ -701,7 +701,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
       await explorerInvoke(transport, "copy_entries", sessionId, { sourcePaths: sourceIds, targetDir });
       if (session) await loadDirectory(session.currentPath);
     } catch (err) {
-      setError(sessionId, err instanceof Error ? err.message : "Copy failed");
+      setError(sessionId, err instanceof Error ? err.message : "Não foi possível copiar");
     } finally {
       setBusy(false);
     }
@@ -794,13 +794,14 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
       {session.error && (
         <div
           data-testid="explorer-error"
-          className="flex items-center gap-2.5 px-4 py-2.5 bg-status-error/10 border-b border-status-error/20 text-status-error"
+          className="flex items-center gap-2.5 mx-6 mb-3 px-4 py-2.5 rounded-[14px] bg-status-error/10 text-status-error"
         >
           <AlertCircle size={15} strokeWidth={2} aria-hidden="true" className="shrink-0" />
           <p className="text-[length:var(--text-sm)]">{session.error}</p>
         </div>
       )}
 
+      <div className="flex flex-col flex-1 min-h-0 mx-6 mb-4 rounded-[17px] bg-white/[0.05] overflow-hidden">
       <ExplorerFileTable
         provider={provider}
         entries={explorerEntries}
@@ -830,6 +831,7 @@ export function ExplorerView({ sessionId, transport = "sftp", isActive = true }:
         loading={session.loading}
         busy={busy}
       />
+      </div>
 
       {isDragOver && (
         <ExplorerDropZone
@@ -859,7 +861,7 @@ interface PendingDrop {
 }
 
 /** Extract a human-readable message from a Tauri/SftpError rejection. */
-function errorMessage(err: unknown, fallback = "Unexpected error"): string {
+function errorMessage(err: unknown, fallback = "Erro inesperado"): string {
   if (err && typeof err === "object" && "message" in err) {
     return String((err as { message: string }).message);
   }

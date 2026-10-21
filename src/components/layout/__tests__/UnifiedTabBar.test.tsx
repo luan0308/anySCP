@@ -29,13 +29,13 @@ afterEach(() => {
 const hostsTab: UnifiedTab = {
   type: "page",
   id: pageTabId("hosts"),
-  label: "Hosts",
+  label: "Servidores",
   page: "hosts",
 };
 const snippetsTab: UnifiedTab = {
   type: "page",
   id: pageTabId("snippets"),
-  label: "Snippets",
+  label: "Comandos",
   page: "snippets",
 };
 
@@ -82,8 +82,8 @@ describe("UnifiedTabBar", () => {
 
   it("shows no scroll chevrons when the strip fits", () => {
     render(<UnifiedTabBar />);
-    expect(screen.queryByLabelText("Scroll tabs left")).toBeNull();
-    expect(screen.queryByLabelText("Scroll tabs right")).toBeNull();
+    expect(screen.queryByLabelText("Rolar abas para a esquerda")).toBeNull();
+    expect(screen.queryByLabelText("Rolar abas para a direita")).toBeNull();
   });
 
   it("shows chevrons on overflow, greys out the exhausted side, and scrolls", async () => {
@@ -94,8 +94,8 @@ describe("UnifiedTabBar", () => {
     try {
       render(<UnifiedTabBar />);
 
-      const left = await screen.findByLabelText("Scroll tabs left");
-      const right = await screen.findByLabelText("Scroll tabs right");
+      const left = await screen.findByLabelText("Rolar abas para a esquerda");
+      const right = await screen.findByLabelText("Rolar abas para a direita");
       // scrollLeft is 0 — nothing to the left yet, plenty to the right.
       expect(left).toBeDisabled();
       expect(right).toBeEnabled();

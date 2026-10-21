@@ -28,7 +28,7 @@ export function CustomSelect({
   value,
   options,
   onChange,
-  placeholder = "Select...",
+  placeholder = "Selecionar…",
   disabled,
   className,
   id,

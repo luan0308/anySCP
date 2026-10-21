@@ -88,9 +88,9 @@ interface SettingsState {
 // Defaults
 const DEFAULTS = {
   themeMode: "dark" as ThemeMode,
-  accentHue: 250,
+  accentHue: 154,
   accentCustom: null as AccentCustom | null,
-  interfaceFont: "'Geist', system-ui, sans-serif",
+  interfaceFont: "'Rethink Sans', system-ui, sans-serif",
   interfaceMonoFont: "'JetBrains Mono', 'Fira Code', ui-monospace, monospace",
   autoUpdate: true,
   skippedUpdateVersion: null as string | null,

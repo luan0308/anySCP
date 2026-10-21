@@ -27,36 +27,36 @@ export function UpdateDialog() {
     <ModalShell
       open={open && !!version}
       onClose={dismiss}
-      title="Update available"
+      title="Atualização disponível"
       maxWidth="sm"
       footerStart={
         <button type="button" onClick={skip} className={BTN_GHOST}>
-          Skip this version
+          Pular esta versão
         </button>
       }
       footer={
         <>
           <button type="button" onClick={dismiss} className={BTN_SECONDARY}>
-            Later
+            Depois
           </button>
           {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
           <button autoFocus type="button" onClick={() => void install()} className={BTN_PRIMARY}>
-            Install
+            Instalar
           </button>
         </>
       }
     >
       <div className="flex flex-col gap-3 no-select">
         <p className="text-[length:var(--text-sm)] text-text-secondary">
-          anySCP <span className="font-medium text-text-primary">v{version}</span> is available
-          {appVersion ? <span className="text-text-muted"> — you have v{appVersion}</span> : null}.
+          Talktoall Files <span className="font-medium text-text-primary">v{version}</span> disponível
+          {appVersion ? <span className="text-text-muted"> (você está na v{appVersion})</span> : null}.
         </p>
         <button
           type="button"
           onClick={() => void openChangelog()}
           className="self-start inline-flex items-center gap-1.5 text-[length:var(--text-sm)] font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
         >
-          View changelog on GitHub
+          Ver novidades no GitHub
           <ExternalLink size={13} strokeWidth={2} />
         </button>
       </div>

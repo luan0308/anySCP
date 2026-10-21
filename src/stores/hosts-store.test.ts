@@ -112,7 +112,7 @@ describe("hosts-store duplicateHost", () => {
     // exactly the bug that left duplicated password hosts unable to connect.
     expect(invoke).not.toHaveBeenCalledWith("save_host", expect.anything());
     expect(invoke).toHaveBeenCalledWith("duplicate_host", {
-      host: expect.objectContaining({ label: "alpha (copy)", host: "alpha.example.com" }),
+      host: expect.objectContaining({ label: "alpha (cópia)", host: "alpha.example.com" }),
       sourceId: "a",
     });
   });
@@ -165,7 +165,7 @@ describe("hosts-store duplicateHost", () => {
       "alpha",
       "bravo",
       "charlie",
-      "alpha (copy)",
+      "alpha (cópia)",
     ]);
   });
 
@@ -173,7 +173,7 @@ describe("hosts-store duplicateHost", () => {
     mockBackend({ id: "new", credential_error: null });
 
     await expect(useHostsStore.getState().duplicateHost("missing")).rejects.toThrow(
-      /host not found/,
+      /Servidor não encontrado/,
     );
   });
 });

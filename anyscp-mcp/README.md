@@ -1,28 +1,28 @@
-# anyscp-mcp
+# talktoall-files-mcp
 
-MCP server that lets Claude work with the servers saved in anySCP: SSH hosts
-(over SFTP) and FTP/FTPS hosts. It reads the server list from anySCP's
+MCP server that lets Claude work with the servers saved in Talktoall Files: SSH hosts
+(over SFTP) and FTP/FTPS hosts. It reads the server list from Talktoall Files'
 database and the passwords from the system keychain, so Claude refers to
 servers by name and never sees a credential.
 
 ## Connect
 
-In anySCP, open **Settings › Claude** and click **Connect**. That adds this
+In Talktoall Files, open **Configurações › Claude e Codex** and click **Conectar ao Claude** (or **Conectar ao Codex**). That adds this
 entry to Claude Desktop's `claude_desktop_config.json` (restart Claude
 Desktop afterwards):
 
 ```json
-{ "mcpServers": { "anyscp": { "command": "C:\\Program Files\\anySCP\\anyscp-mcp.exe", "args": [] } } }
+{ "mcpServers": { "talktoall-files": { "command": "C:\\Program Files\\Talktoall Files\\talktoall-files-mcp.exe", "args": [] } } }
 ```
 
 For Claude Code:
 
 ```
-claude mcp add --scope user anyscp -- "C:\Program Files\anySCP\anyscp-mcp.exe"
+claude mcp add --scope user talktoall-files -- "C:\Program Files\Talktoall Files\talktoall-files-mcp.exe"
 ```
 
-`anyscp-mcp --check` lists the servers Claude will see and whether each has a
-saved credential. `anyscp-mcp --config` prints the JSON snippet above with the
+`talktoall-files-mcp --check` lists the servers Claude will see and whether each has a
+saved credential. `talktoall-files-mcp --config` prints the JSON snippet above with the
 real path.
 
 ## Tools
@@ -44,9 +44,9 @@ real path.
 
 - Passwords come from the OS keychain; tool output never includes them.
 - SSH host keys are trusted on first use and pinned in `mcp_known_hosts.json`
-  next to anySCP's database; a changed key refuses the connection.
+  next to the app database; a changed key refuses the connection.
 - `ANYSCP_MCP_READONLY=1` exposes only the read tools.
-- `ANYSCP_DB=path` points at a different `anyscp.db`.
+- `TALKTOALL_FILES_DB=path` points at a different `anyscp.db`.
 
 ## Development
 

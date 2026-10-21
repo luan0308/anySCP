@@ -195,11 +195,11 @@ describe("FilePropertiesDialog", () => {
       />,
     );
     // Single-file semantics by default: bits are preserved.
-    expect(screen.getByTestId("perm-special-bits")).toHaveTextContent("preserved on apply");
+    expect(screen.getByTestId("perm-special-bits")).toHaveTextContent("mantidos ao aplicar");
 
     fireEvent.click(screen.getByTestId("perm-recursive"));
     // Recursive drops special bits across the tree — the notice must say so.
-    expect(screen.getByTestId("perm-special-bits")).toHaveTextContent("dropped on a recursive apply");
+    expect(screen.getByTestId("perm-special-bits")).toHaveTextContent("descartados ao aplicar de forma recursiva");
   });
 
   it("does NOT clobber an in-progress edit when the parent re-renders with the same permissions", () => {

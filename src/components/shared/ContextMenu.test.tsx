@@ -25,7 +25,7 @@ function mockMenuSize(width: number, height: number) {
 }
 
 function menuStyle(): CSSStyleDeclaration {
-  return (screen.getByRole("menu", { name: "Context menu" }) as HTMLElement).style;
+  return (screen.getByRole("menu", { name: "Menu de contexto" }) as HTMLElement).style;
 }
 
 describe("ContextMenu", () => {

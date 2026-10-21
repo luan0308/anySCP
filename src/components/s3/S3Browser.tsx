@@ -124,7 +124,7 @@ export function S3Browser({ sessionId, isActive = true }: S3BrowserProps) {
       setBuckets(sessionId, buckets);
     } catch (err) {
       const msg = err && typeof err === "object" && "message" in err
-        ? String((err as { message: string }).message) : "Failed to list buckets";
+        ? String((err as { message: string }).message) : "Não foi possível listar os buckets";
       setError(sessionId, msg);
     }
   }, [sessionId, setLoading, setBuckets, setError]);
@@ -141,7 +141,7 @@ export function S3Browser({ sessionId, isActive = true }: S3BrowserProps) {
       setEntries(sessionId, prefix, result.entries, result.continuation_token);
     } catch (err) {
       const msg = err && typeof err === "object" && "message" in err
-        ? String((err as { message: string }).message) : "Failed to list objects";
+        ? String((err as { message: string }).message) : "Não foi possível listar os objetos";
       setError(sessionId, msg);
     }
   }, [sessionId, setLoading, setEntries, setError]);
@@ -164,7 +164,7 @@ export function S3Browser({ sessionId, isActive = true }: S3BrowserProps) {
       appendEntries(sessionId, prefix, result.entries, result.continuation_token);
     } catch (err) {
       const msg = err && typeof err === "object" && "message" in err
-        ? String((err as { message: string }).message) : "Failed to list objects";
+        ? String((err as { message: string }).message) : "Não foi possível listar os objetos";
       setError(sessionId, msg);
     }
   }, [sessionId, setLoading, appendEntries, setError]);
@@ -177,7 +177,7 @@ export function S3Browser({ sessionId, isActive = true }: S3BrowserProps) {
       await loadObjects("");
     } catch (err) {
       const msg = err && typeof err === "object" && "message" in err
-        ? String((err as { message: string }).message) : "Failed to switch bucket";
+        ? String((err as { message: string }).message) : "Não foi possível trocar de bucket";
       setError(sessionId, msg);
     }
   }, [sessionId, setCurrentBucket, loadObjects, setError]);
@@ -290,7 +290,7 @@ export function S3Browser({ sessionId, isActive = true }: S3BrowserProps) {
     if (entry.entryType === "Directory") return;
     try {
       const { save } = await import("@tauri-apps/plugin-dialog");
-      const savePath = await save({ defaultPath: entry.name, title: `Download "${entry.name}"` });
+      const savePath = await save({ defaultPath: entry.name, title: `Baixar "${entry.name}"` });
       if (!savePath) return;
 
       // Download to the user-chosen (possibly renamed) path THROUGH the transfer
@@ -313,7 +313,7 @@ export function S3Browser({ sessionId, isActive = true }: S3BrowserProps) {
     if (!session) return;
     try {
       const { open } = await import("@tauri-apps/plugin-dialog");
-      const path = await open({ multiple: false, title: "Upload file" });
+      const path = await open({ multiple: false, title: "Enviar arquivo" });
       if (!path || typeof path !== "string") return;
 
       const { invoke } = await import("@tauri-apps/api/core");
@@ -331,7 +331,7 @@ export function S3Browser({ sessionId, isActive = true }: S3BrowserProps) {
     if (!session) return;
     try {
       const { open } = await import("@tauri-apps/plugin-dialog");
-      const selection = await open({ directory: true, multiple: true, title: "Upload folder" });
+      const selection = await open({ directory: true, multiple: true, title: "Enviar pasta" });
       if (!selection) return;
       const localPaths = Array.isArray(selection) ? selection : [selection];
       if (localPaths.length === 0) return;
@@ -416,7 +416,7 @@ export function S3Browser({ sessionId, isActive = true }: S3BrowserProps) {
           <span className="flex-1" />
           <button
             onClick={() => void loadBuckets()}
-            title="Refresh"
+            title="Atualizar"
             className="flex items-center justify-center w-7 h-7 rounded-md text-text-muted hover:text-text-secondary hover:bg-bg-subtle transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <RefreshCw size={15} strokeWidth={1.8} className={session.loading ? "motion-safe:animate-spin" : ""} />
@@ -441,7 +441,7 @@ export function S3Browser({ sessionId, isActive = true }: S3BrowserProps) {
           ))}
           {!session.loading && session.buckets.length === 0 && !session.error && (
             <p className="text-[length:var(--text-sm)] text-text-muted px-4 py-8 text-center">
-              No buckets found
+              Nenhum bucket encontrado
             </p>
           )}
         </div>
@@ -500,7 +500,7 @@ export function S3Browser({ sessionId, isActive = true }: S3BrowserProps) {
       {session.nextToken && (
         <div data-testid="s3-load-more" className="flex items-center justify-center gap-3 px-4 py-2 border-t border-border bg-bg-surface shrink-0 no-select">
           <span data-testid="s3-load-more-count" className="text-[length:var(--text-xs)] text-text-muted">
-            Showing {session.entries.length.toLocaleString()} items — more available
+            Mostrando {session.entries.length.toLocaleString("pt-BR")} itens, há mais disponíveis
           </span>
           <button
             data-testid="s3-load-more-button"
@@ -508,7 +508,7 @@ export function S3Browser({ sessionId, isActive = true }: S3BrowserProps) {
             disabled={session.loading}
             className="px-3 py-1 rounded-md text-[length:var(--text-xs)] font-medium text-text-muted bg-bg-surface border border-border hover:border-border-focus hover:text-text-secondary hover:bg-bg-overlay disabled:opacity-50 transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {session.loading ? "Loading..." : "Load more"}
+            {session.loading ? "Carregando…" : "Carregar mais"}
           </button>
         </div>
       )}

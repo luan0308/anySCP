@@ -59,7 +59,7 @@ export function SftpTabs() {
                   "transition-all duration-[var(--duration-fast)]",
                   "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 ].join(" ")}
-                aria-label={`Close ${session.label}`}
+                aria-label={`Fechar ${session.label}`}
                 tabIndex={-1}
               >
                 <X size={13} strokeWidth={2} aria-hidden="true" />

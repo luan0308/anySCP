@@ -1,4 +1,4 @@
-//! Read-only access to the servers saved in anySCP.
+//! Read-only access to the servers saved in Talktoall Files.
 //!
 //! anySCP keeps its server list in a SQLite database inside the app data
 //! folder and the secrets in the OS credential store (Windows Credential
@@ -11,10 +11,15 @@ use rusqlite::{Connection, OpenFlags, OptionalExtension};
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
 
-/// Bundle identifier of the anySCP app; Tauri stores app data under it.
-const APP_IDENTIFIER: &str = "com.macnev2013.anyscp";
-/// Keychain service namespace used by anySCP's vault module.
-const KEYRING_SERVICE: &str = "com.anyscp.credentials";
+/// Bundle identifier of the Talktoall Files app; Tauri stores app data under it.
+const APP_IDENTIFIER: &str = "br.com.talktoall.files";
+/// Identifier used before the app was renamed (anySCP). Read when the new
+/// folder does not exist yet, i.e. the app was not opened since the update.
+const LEGACY_APP_IDENTIFIER: &str = "com.macnev2013.anyscp";
+/// Keychain service namespace used by the app's vault module.
+const KEYRING_SERVICE: &str = "br.com.talktoall.files";
+/// Namespace the app used as anySCP; still read as a fallback.
+const LEGACY_KEYRING_SERVICE: &str = "com.anyscp.credentials";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Protocol {
@@ -81,19 +86,25 @@ impl Store {
     /// Find anySCP's database: `ANYSCP_DB` wins, otherwise the standard
     /// Tauri app-data folder for this platform.
     pub fn locate() -> Result<Self> {
-        if let Ok(p) = std::env::var("ANYSCP_DB") {
-            let path = PathBuf::from(p);
-            if !path.exists() {
-                bail!(
-                    "ANYSCP_DB points to {} but that file does not exist",
-                    path.display()
-                );
+        for var in ["TALKTOALL_FILES_DB", "ANYSCP_DB"] {
+            if let Ok(p) = std::env::var(var) {
+                let path = PathBuf::from(p);
+                if !path.exists() {
+                    bail!(
+                        "{var} points to {} but that file does not exist",
+                        path.display()
+                    );
+                }
+                return Ok(Self { db_path: path });
             }
-            return Ok(Self { db_path: path });
         }
         let base =
             dirs::data_dir().ok_or_else(|| anyhow!("could not resolve the user data folder"))?;
         let path = base.join(APP_IDENTIFIER).join("anyscp.db");
+        let legacy = base.join(LEGACY_APP_IDENTIFIER).join("anyscp.db");
+        if !path.exists() && legacy.exists() {
+            return Ok(Self { db_path: legacy });
+        }
         Ok(Self { db_path: path })
     }
 
@@ -112,7 +123,7 @@ impl Store {
     fn open(&self) -> Result<Connection> {
         if !self.db_path.exists() {
             bail!(
-                "anySCP database not found at {}. Open anySCP at least once and save a server first.",
+                "Talktoall Files database not found at {}. Open Talktoall Files at least once and save a server first.",
                 self.db_path.display()
             );
         }
@@ -125,7 +136,7 @@ impl Store {
         Ok(conn)
     }
 
-    /// Every server saved in anySCP that Claude can reach (SSH hosts over
+    /// Every server saved in Talktoall Files that Claude can reach (SSH hosts over
     /// SFTP, and FTP/FTPS hosts). S3 connections are not exposed.
     pub fn list(&self) -> Result<Vec<Server>> {
         let conn = self.open()?;
@@ -140,7 +151,7 @@ impl Store {
     pub fn find(&self, query: &str) -> Result<Server> {
         let all = self.list()?;
         if all.is_empty() {
-            bail!("No servers are saved in anySCP yet. Add one in the app first.");
+            bail!("No servers are saved in Talktoall Files yet. Add one in the app first.");
         }
         let q = query.trim().to_lowercase();
         if let Some(s) = all.iter().find(|s| s.id.to_lowercase() == q) {
@@ -183,7 +194,7 @@ impl Store {
         read_ssh_hosts(&conn)?
             .into_iter()
             .find(|s| s.id == id)
-            .ok_or_else(|| anyhow!("tunnel host {id} is no longer saved in anySCP"))
+            .ok_or_else(|| anyhow!("tunnel host {id} is no longer saved in Talktoall Files"))
     }
 }
 
@@ -290,22 +301,27 @@ fn vault_key(server: &Server) -> String {
 /// app saved the server without one (e.g. an unencrypted private key).
 pub fn credential(server: &Server) -> Result<Option<StoredCredential>> {
     let key = vault_key(server);
-    let entry = keyring::Entry::new(KEYRING_SERVICE, &key)
-        .map_err(|e| anyhow!("credential store unavailable: {e}"))?;
-    match entry.get_password() {
-        Ok(json) => {
-            let cred: StoredCredential = serde_json::from_str(&json).map_err(|e| {
-                anyhow!(
-                    "credential for {} is in an unexpected format: {e}",
+    for service in [KEYRING_SERVICE, LEGACY_KEYRING_SERVICE] {
+        let entry = keyring::Entry::new(service, &key)
+            .map_err(|e| anyhow!("credential store unavailable: {e}"))?;
+        match entry.get_password() {
+            Ok(json) => {
+                let cred: StoredCredential = serde_json::from_str(&json).map_err(|e| {
+                    anyhow!(
+                        "credential for {} is in an unexpected format: {e}",
+                        server.label
+                    )
+                })?;
+                return Ok(Some(cred));
+            }
+            Err(keyring::Error::NoEntry) => continue,
+            Err(e) => {
+                return Err(anyhow!(
+                    "could not read the credential for {}: {e}",
                     server.label
-                )
-            })?;
-            Ok(Some(cred))
+                ))
+            }
         }
-        Err(keyring::Error::NoEntry) => Ok(None),
-        Err(e) => Err(anyhow!(
-            "could not read the credential for {}: {e}",
-            server.label
-        )),
     }
+    Ok(None)
 }
