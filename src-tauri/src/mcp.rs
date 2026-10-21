@@ -21,6 +21,8 @@ pub struct McpStatus {
     pub connected: bool,
     /// Ready-to-paste command for Claude Code.
     pub claude_code_command: Option<String>,
+    /// Claude Desktop is open (it must be closed to connect).
+    pub claude_running: bool,
 }
 
 fn server_path() -> Option<PathBuf> {
@@ -34,28 +36,80 @@ fn server_path() -> Option<PathBuf> {
     p.exists().then_some(p)
 }
 
-/// Where Claude Desktop keeps its config on this platform. The Microsoft
-/// Store build of Claude on Windows uses a virtualised AppData folder, so
-/// that location is included when it exists.
+/// Where Claude Desktop keeps its config on this platform.
+///
+/// Windows has had three locations over time, and current builds use the
+/// first one that exists:
+/// - `%LOCALAPPDATA%\Claude-Data\<package>\claude_desktop_config.json`
+///   (packaged Claude, current versions)
+/// - `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\...`
+///   (packaged Claude, older versions; left with only a marker after the move)
+/// - `%APPDATA%\Claude\claude_desktop_config.json` (classic installer)
+///
+/// Writing to a location Claude no longer reads silently does nothing, so
+/// when a newer location holds a config the older ones are ignored.
 fn config_paths() -> Vec<PathBuf> {
-    let mut out = Vec::new();
-    if let Some(cfg) = dirs::config_dir() {
-        out.push(cfg.join("Claude").join("claude_desktop_config.json"));
-    }
     #[cfg(windows)]
     if let Some(local) = dirs::data_local_dir() {
+        let mut data = Vec::new();
+        if let Ok(rd) = std::fs::read_dir(local.join("Claude-Data")) {
+            for e in rd.flatten() {
+                let f = e.path().join("claude_desktop_config.json");
+                if f.exists() {
+                    data.push(f);
+                }
+            }
+        }
+        if !data.is_empty() {
+            return data;
+        }
+        let mut packaged = Vec::new();
         if let Ok(rd) = std::fs::read_dir(local.join("Packages")) {
             for e in rd.flatten() {
                 if e.file_name().to_string_lossy().starts_with("Claude_") {
-                    let dir = e.path().join("LocalCache").join("Roaming").join("Claude");
-                    if dir.exists() {
-                        out.push(dir.join("claude_desktop_config.json"));
+                    let f = e
+                        .path()
+                        .join("LocalCache")
+                        .join("Roaming")
+                        .join("Claude")
+                        .join("claude_desktop_config.json");
+                    if f.exists() {
+                        packaged.push(f);
                     }
                 }
             }
         }
+        if !packaged.is_empty() {
+            return packaged;
+        }
     }
-    out
+    dirs::config_dir()
+        .map(|cfg| vec![cfg.join("Claude").join("claude_desktop_config.json")])
+        .unwrap_or_default()
+}
+
+/// Claude Desktop rewrites its config when it quits, which would drop an
+/// entry added while it runs, so connecting requires it to be closed.
+fn claude_desktop_running() -> bool {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        if let Ok(out) = std::process::Command::new("tasklist")
+            .args(["/FI", "IMAGENAME eq claude.exe", "/NH", "/FO", "CSV"])
+            .creation_flags(CREATE_NO_WINDOW)
+            .output()
+        {
+            return String::from_utf8_lossy(&out.stdout)
+                .to_ascii_lowercase()
+                .contains("\"claude.exe\"");
+        }
+        false
+    }
+    #[cfg(not(windows))]
+    {
+        false
+    }
 }
 
 fn read_config(path: &Path) -> Result<Value, String> {
@@ -102,6 +156,7 @@ pub fn mcp_status() -> McpStatus {
             .as_ref()
             .map(|s| format!("claude mcp add --scope user anyscp -- \"{}\"", s.display())),
         server_path: server.map(|p| p.display().to_string()),
+        claude_running: claude_desktop_running(),
         config_paths: paths.iter().map(|p| p.display().to_string()).collect(),
         connected,
     }
@@ -118,6 +173,12 @@ pub fn mcp_connect_claude_desktop() -> Result<McpStatus, String> {
          that includes it."
             .to_string()
     })?;
+    if claude_desktop_running() {
+        return Err("Quit Claude Desktop first (right-click its icon next to the clock, then Quit), \
+                    then click Connect again. Claude rewrites its settings when it closes and would \
+                    undo the change."
+            .into());
+    }
     let paths = config_paths();
     if paths.is_empty() {
         return Err("Could not locate the user config folder".into());

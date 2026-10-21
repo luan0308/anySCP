@@ -731,6 +731,7 @@ interface McpStatus {
   config_paths: string[];
   connected: boolean;
   claude_code_command: string | null;
+  claude_running: boolean;
 }
 
 function ClaudeSettings() {
@@ -756,6 +757,7 @@ function ClaudeSettings() {
       toast.success("Connected. Restart Claude Desktop to load anySCP.");
     } catch (err) {
       toast.error(typeof err === "string" ? err : "Could not update the Claude Desktop config");
+      void refresh();
     } finally {
       setBusy(false);
     }
@@ -798,6 +800,12 @@ function ClaudeSettings() {
             </button>
           )}
         </SettingRow>
+        {status && !status.connected && status.claude_running && (
+          <p className={`${DESC_CLASS} px-1 text-status-connecting`}>
+            Quit Claude Desktop before connecting (right-click its icon next to the clock, then Quit).
+            Claude rewrites its settings when it closes and would undo the change.
+          </p>
+        )}
         {status && !status.server_path && (
           <p className={`${DESC_CLASS} px-1`}>
             The MCP server is installed with the packaged app; it is not available in development builds.
